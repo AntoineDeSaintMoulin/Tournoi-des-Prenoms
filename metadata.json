@@ -1,0 +1,6 @@
+{
+  "name": "Tournoi des Prénoms",
+  "description": "Arbre de tournoi à élimination directe sur 63 jours pour choisir le prénom de bébé, avec paris de 1000 points et cotes en temps réel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
