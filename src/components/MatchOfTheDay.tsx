@@ -30,7 +30,6 @@ export const MatchOfTheDay: React.FC = () => {
     comments,
     addComment,
     toggleParentFavorite,
-    seedSimulatedVotesForCurrentMatchup,
   } = useTournament();
 
   const [selectedNameId, setSelectedNameId] = useState<string | null>(null);
@@ -127,14 +126,6 @@ export const MatchOfTheDay: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={seedSimulatedVotesForCurrentMatchup}
-              className="text-xs bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-amber-300 px-3 py-1.5 rounded-xl border border-slate-700/60 transition-all flex items-center gap-1.5"
-              title="Injecter des votes de la communauté"
-            >
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-              Simuler Votes
-            </button>
             {currentUser.role === 'parent' && (
               <button
                 onClick={() => advanceToNextDay()}
