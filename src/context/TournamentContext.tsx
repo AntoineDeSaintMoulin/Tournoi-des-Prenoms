@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
 import { BabyName, Matchup, User, Bet, Comment } from '../types';
-import { INITIAL_NAMES } from '../data/initialNames';
-import { DEFAULT_USERS } from '../data/defaultUsers';
-import { createInitialMatchups, getNextMatchupLocation } from '../utils/tournament';
 import { calculateOdds, calculatePotentialPayout } from '../utils/odds';
+import { getNextMatchupLocation } from '../utils/tournament';
 
 interface TournamentContextType {
   currentDay: number;
@@ -14,217 +13,246 @@ interface TournamentContextType {
   currentUser: User;
   bets: Bet[];
   comments: Comment[];
-  
-  // Actions
+  loading: boolean;
+
   switchUser: (userId: string) => void;
-  createUser: (name: string, role: 'parent' | 'bettor', avatar?: string) => void;
-  placeBet: (matchupId: number, nameId: string, amount: number) => { success: boolean; message: string };
-  advanceToNextDay: (winnerIdOverride?: string) => void;
-  jumpToDay: (dayNumber: number) => void;
-  resetTournament: () => void;
-  addComment: (matchupId: number, text: string, nameId?: string) => void;
-  toggleParentFavorite: (nameId: string) => void;
-  seedSimulatedVotesForCurrentMatchup: () => void;
+  createUser: (name: string, role: 'parent' | 'bettor', avatar?: string) => Promise<void>;
+  placeBet: (matchupId: number, nameId: string, amount: number) => Promise<{ success: boolean; message: string }>;
+  advanceToNextDay: (winnerIdOverride?: string) => Promise<void>;
+  addComment: (matchupId: number, text: string, nameId?: string) => Promise<void>;
+  toggleParentFavorite: (nameId: string) => Promise<void>;
+  refreshAll: () => Promise<void>;
 }
 
-const STORAGE_KEY = 'prenom_tournament_v1';
+const CURRENT_USER_KEY = 'prenom_tournament_current_user_v1';
 
 const TournamentContext = createContext<TournamentContextType | undefined>(undefined);
 
-export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [names, setNames] = useState<BabyName[]>(INITIAL_NAMES);
-  const [matchups, setMatchups] = useState<Matchup[]>(() => createInitialMatchups(INITIAL_NAMES));
-  const [users, setUsers] = useState<User[]>(DEFAULT_USERS);
-  const [currentUserId, setCurrentUserId] = useState<string>(DEFAULT_USERS[0].id);
-  const [currentDay, setCurrentDay] = useState<number>(1);
-  const [bets, setBets] = useState<Bet[]>([]);
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: 'c1',
-      userId: 'mamie_chantal',
-      userName: 'Mamie Chantal',
-      userAvatar: DEFAULT_USERS[1].avatar,
-      matchupId: 1,
-      text: 'Jules est le prénom de mon grand-père, un magnifique prénom noble et fort ! Je mise mes points !',
-      timestamp: Date.now() - 3600000,
-      likes: 4,
-    },
-    {
-      id: 'c2',
-      userId: 'tonton_thomas',
-      userName: 'Tonton Thomas',
-      userAvatar: DEFAULT_USERS[2].avatar,
-      matchupId: 1,
-      text: 'Zéphir a un charme poétique incroyable ! Ne sous-estimez pas l’outsider du tournoi !',
-      timestamp: Date.now() - 1800000,
-      likes: 2,
-    },
-  ]);
+// ---- Mappers: snake_case (Supabase) -> camelCase (App types) ----
 
-  // Load state from local storage on init
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.matchups && parsed.matchups.length === 63) {
-          setNames(parsed.names || INITIAL_NAMES);
-          setMatchups(parsed.matchups);
-          setUsers(parsed.users || DEFAULT_USERS);
-          setCurrentUserId(parsed.currentUserId || DEFAULT_USERS[0].id);
-          setCurrentDay(parsed.currentDay || 1);
-          setBets(parsed.bets || []);
-          setComments(parsed.comments || []);
-        }
-      } else {
-        // Seed initial simulated bets on Match 1 so odds look active right away!
-        seedInitialBetsOnMatch1();
-      }
-    } catch (err) {
-      console.error('Failed to load tournament state:', err);
-    }
-  }, []);
-
-  // Save state to local storage on changes
-  useEffect(() => {
-    try {
-      const stateToSave = {
-        names,
-        matchups,
-        users,
-        currentUserId,
-        currentDay,
-        bets,
-        comments,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-    } catch (err) {
-      console.error('Failed to save tournament state:', err);
-    }
-  }, [names, matchups, users, currentUserId, currentDay, bets, comments]);
-
-  const seedInitialBetsOnMatch1 = () => {
-    // Seed initial votes on matchup 1 (Jules vs Zéphir)
-    setMatchups((prev) =>
-      prev.map((m) =>
-        m.id === 1
-          ? {
-              ...m,
-              status: 'live',
-              votesA: 650,
-              votesB: 250,
-              countA: 3,
-              countB: 1,
-            }
-          : m
-      )
-    );
+function mapName(row: any): BabyName {
+  return {
+    id: row.id,
+    name: row.name,
+    gender: row.gender,
+    origin: row.origin || '',
+    meaning: row.meaning || '',
+    style: row.style || '',
+    popularity: row.popularity || 50,
+    syllables: row.syllables || undefined,
+    parentFavorite: row.parent_favorite || false,
+    seed: row.seed,
   };
+}
 
+function mapUser(row: any): User {
+  return {
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    avatar: row.avatar || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
+    points: Number(row.points),
+    totalWon: Number(row.total_won),
+    totalBetsCount: row.total_bets_count,
+    winningBetsCount: row.winning_bets_count,
+  };
+}
+
+function mapBet(row: any): Bet {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    matchupId: row.matchup_id,
+    chosenNameId: row.chosen_name_id,
+    chosenName: row.chosen_name || '',
+    pointsBet: Number(row.points_bet),
+    oddsAtBetTime: Number(row.odds_at_bet_time),
+    potentialPayout: Number(row.potential_payout),
+    payoutAmount: row.payout_amount != null ? Number(row.payout_amount) : undefined,
+    status: row.status,
+    dayBet: row.day_bet,
+    timestamp: new Date(row.created_at).getTime(),
+  };
+}
+
+function mapComment(row: any): Comment {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    userName: row.user_name || '',
+    userAvatar: row.user_avatar || '',
+    matchupId: row.matchup_id,
+    nameId: row.name_id || undefined,
+    text: row.text,
+    timestamp: new Date(row.created_at).getTime(),
+    likes: row.likes,
+  };
+}
+
+export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [names, setNames] = useState<BabyName[]>([]);
+  const [rawMatchups, setRawMatchups] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [bets, setBets] = useState<Bet[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(
+    () => localStorage.getItem(CURRENT_USER_KEY)
+  );
+  const [loading, setLoading] = useState(true);
+
+  // Assemble matchups (joining names by id, like the old local model)
+  const namesById = new Map(names.map((n) => [n.id, n]));
+  const matchups: Matchup[] = rawMatchups
+    .sort((a, b) => a.id - b.id)
+    .map((m) => ({
+      id: m.id,
+      round: m.round,
+      dayNumber: m.day_number,
+      nameA: m.name_a_id ? namesById.get(m.name_a_id) || null : null,
+      nameB: m.name_b_id ? namesById.get(m.name_b_id) || null : null,
+      votesA: Number(m.votes_a),
+      votesB: Number(m.votes_b),
+      countA: m.count_a,
+      countB: m.count_b,
+      winnerId: m.winner_id,
+      status: m.status,
+      parentChoiceId: m.parent_choice_id,
+    }));
+
+  const currentDay = matchups.find((m) => m.status === 'live')?.dayNumber
+    || matchups.find((m) => m.status !== 'completed')?.dayNumber
+    || 1;
+
+  const currentMatchup = matchups.find((m) => m.dayNumber === currentDay) || null;
   const currentUser = users.find((u) => u.id === currentUserId) || users[0];
 
-  const currentMatchup = matchups.find((m) => m.dayNumber === currentDay) || matchups[0];
+  const fetchAll = useCallback(async () => {
+    const [namesRes, matchupsRes, usersRes, betsRes, commentsRes] = await Promise.all([
+      supabase.from('baby_names').select('*').order('seed', { ascending: true }),
+      supabase.from('matchups').select('*').order('id', { ascending: true }),
+      supabase.from('users').select('*').order('created_at', { ascending: true }),
+      supabase.from('bets').select('*').order('created_at', { ascending: false }),
+      supabase.from('comments').select('*').order('created_at', { ascending: false }),
+    ]);
+
+    if (namesRes.data) setNames(namesRes.data.map(mapName));
+    if (matchupsRes.data) setRawMatchups(matchupsRes.data);
+    if (usersRes.data) setUsers(usersRes.data.map(mapUser));
+    if (betsRes.data) setBets(betsRes.data.map(mapBet));
+    if (commentsRes.data) setComments(commentsRes.data.map(mapComment));
+
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchAll();
+
+    const channel = supabase
+      .channel('tournament_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'baby_names' }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matchups' }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bets' }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, fetchAll)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchAll]);
 
   const switchUser = (userId: string) => {
-    const found = users.find((u) => u.id === userId);
-    if (found) {
-      setCurrentUserId(userId);
+    setCurrentUserId(userId);
+    localStorage.setItem(CURRENT_USER_KEY, userId);
+  };
+
+  const createUser = async (name: string, role: 'parent' | 'bettor', avatar?: string) => {
+    const { data, error } = await supabase
+      .from('users')
+      .insert({
+        name,
+        role,
+        avatar: avatar || null,
+        points: 1000,
+      })
+      .select()
+      .single();
+
+    if (!error && data) {
+      switchUser(data.id);
+      await fetchAll();
     }
   };
 
-  const createUser = (name: string, role: 'parent' | 'bettor', avatar?: string) => {
-    const newUser: User = {
-      id: 'user_' + Date.now(),
-      name,
-      role,
-      avatar: avatar || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
-      points: 1000,
-      totalWon: 0,
-      totalBetsCount: 0,
-      winningBetsCount: 0,
-    };
-    setUsers((prev) => [...prev, newUser]);
-    setCurrentUserId(newUser.id);
-  };
-
-  const placeBet = (matchupId: number, nameId: string, amount: number) => {
+  const placeBet = async (matchupId: number, nameId: string, amount: number) => {
+    if (!currentUser) return { success: false, message: "Aucun utilisateur sélectionné." };
     if (amount <= 0) {
       return { success: false, message: 'Le montant du pari doit être supérieur à 0 point.' };
     }
-
     if (currentUser.points < amount) {
       return { success: false, message: `Solde insuffisant ! Vous avez ${currentUser.points} points disponibles.` };
     }
 
     const targetMatchup = matchups.find((m) => m.id === matchupId);
-    if (!targetMatchup) {
-      return { success: false, message: 'Match introuvable.' };
-    }
-
+    if (!targetMatchup) return { success: false, message: 'Match introuvable.' };
     if (targetMatchup.status !== 'live') {
       return { success: false, message: 'Les paris sont fermés pour ce match.' };
     }
 
     const isA = targetMatchup.nameA?.id === nameId;
     const isB = targetMatchup.nameB?.id === nameId;
-
-    if (!isA && !isB) {
-      return { success: false, message: 'Prénom invalide pour ce match.' };
-    }
+    if (!isA && !isB) return { success: false, message: 'Prénom invalide pour ce match.' };
 
     const chosenNameObj = isA ? targetMatchup.nameA : targetMatchup.nameB;
     if (!chosenNameObj) return { success: false, message: 'Prénom non disponible.' };
 
-    // Calculate odds before bet
     const { oddsA, oddsB } = calculateOdds(targetMatchup.votesA, targetMatchup.votesB);
     const oddsAtBetTime = isA ? oddsA : oddsB;
     const potentialPayout = calculatePotentialPayout(amount, oddsAtBetTime);
 
-    // Create bet object
-    const newBet: Bet = {
-      id: 'bet_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-      userId: currentUser.id,
-      matchupId,
-      chosenNameId: nameId,
-      chosenName: chosenNameObj.name,
-      pointsBet: amount,
-      oddsAtBetTime,
-      potentialPayout,
+    // 1. Insert the bet
+    const { error: betError } = await supabase.from('bets').insert({
+      user_id: currentUser.id,
+      matchup_id: matchupId,
+      chosen_name_id: nameId,
+      chosen_name: chosenNameObj.name,
+      points_bet: amount,
+      odds_at_bet_time: oddsAtBetTime,
+      potential_payout: potentialPayout,
       status: 'active',
-      dayBet: currentDay,
-      timestamp: Date.now(),
-    };
+      day_bet: targetMatchup.dayNumber,
+    });
 
-    // Update user points
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === currentUser.id
-          ? {
-              ...u,
-              points: u.points - amount,
-              totalBetsCount: u.totalBetsCount + 1,
-            }
-          : u
-      )
-    );
+    if (betError) {
+      return {
+        success: false,
+        message: betError.message.includes('duplicate')
+          ? 'Tu as déjà parié sur ce match.'
+          : betError.message,
+      };
+    }
 
-    // Update matchup votes and bettors count
-    setMatchups((prev) =>
-      prev.map((m) => {
-        if (m.id === matchupId) {
-          return {
-            ...m,
-            votesA: isA ? m.votesA + amount : m.votesA,
-            votesB: isB ? m.votesB + amount : m.votesB,
-            countA: isA ? m.countA + 1 : m.countA,
-            countB: isB ? m.countB + 1 : m.countB,
-          };
-        }
-        return m;
+    // 2. Deduct points from user
+    await supabase
+      .from('users')
+      .update({
+        points: currentUser.points - amount,
+        total_bets_count: currentUser.totalBetsCount + 1,
       })
-    );
+      .eq('id', currentUser.id);
 
-    setBets((prev) => [newBet, ...prev]);
+    // 3. Update matchup pool totals
+    await supabase
+      .from('matchups')
+      .update({
+        votes_a: isA ? targetMatchup.votesA + amount : targetMatchup.votesA,
+        votes_b: isB ? targetMatchup.votesB + amount : targetMatchup.votesB,
+        count_a: isA ? targetMatchup.countA + 1 : targetMatchup.countA,
+        count_b: isB ? targetMatchup.countB + 1 : targetMatchup.countB,
+      })
+      .eq('id', matchupId);
+
+    await fetchAll();
 
     return {
       success: true,
@@ -232,13 +260,10 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   };
 
-  const advanceToNextDay = (winnerIdOverride?: string) => {
-    if (currentDay > 63) return;
-
+  const advanceToNextDay = async (winnerIdOverride?: string) => {
     const activeMatchup = matchups.find((m) => m.dayNumber === currentDay);
     if (!activeMatchup || !activeMatchup.nameA || !activeMatchup.nameB) return;
 
-    // Determine winner
     let winningName: BabyName;
     if (winnerIdOverride) {
       winningName = activeMatchup.nameA.id === winnerIdOverride ? activeMatchup.nameA : activeMatchup.nameB;
@@ -247,192 +272,91 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } else if (activeMatchup.votesB > activeMatchup.votesA) {
       winningName = activeMatchup.nameB;
     } else {
-      // Tie-breaker: higher seed or parent choice
       winningName = activeMatchup.nameA.seed < activeMatchup.nameB.seed ? activeMatchup.nameA : activeMatchup.nameB;
     }
 
-    // Calculate final odds for payout
     const { oddsA, oddsB } = calculateOdds(activeMatchup.votesA, activeMatchup.votesB);
     const finalWinningOdds = winningName.id === activeMatchup.nameA.id ? oddsA : oddsB;
+    void finalWinningOdds;
 
     // Resolve bets for this matchup
-    const updatedUsersMap = new Map<string, User>(users.map((u) => [u.id, { ...u }]));
+    const matchBets = bets.filter((b) => b.matchupId === activeMatchup.id && b.status === 'active');
 
-    const updatedBets = bets.map((b) => {
-      if (b.matchupId === activeMatchup.id && b.status === 'active') {
-        const isWin = b.chosenNameId === winningName.id;
-        const payout = isWin ? Math.round(b.pointsBet * b.oddsAtBetTime) : 0;
+    for (const bet of matchBets) {
+      const isWin = bet.chosenNameId === winningName.id;
+      const payout = isWin ? Math.round(bet.pointsBet * bet.oddsAtBetTime) : 0;
 
-        if (isWin) {
-          const userObj = updatedUsersMap.get(b.userId);
-          if (userObj) {
-            userObj.points += payout;
-            userObj.totalWon += payout - b.pointsBet;
-            userObj.winningBetsCount += 1;
-          }
+      await supabase
+        .from('bets')
+        .update({ status: isWin ? 'won' : 'lost', payout_amount: payout })
+        .eq('id', bet.id);
+
+      if (isWin) {
+        const userObj = users.find((u) => u.id === bet.userId);
+        if (userObj) {
+          await supabase
+            .from('users')
+            .update({
+              points: userObj.points + payout,
+              total_won: userObj.totalWon + (payout - bet.pointsBet),
+              winning_bets_count: userObj.winningBetsCount + 1,
+            })
+            .eq('id', userObj.id);
         }
-
-        return {
-          ...b,
-          status: isWin ? ('won' as const) : ('lost' as const),
-          payoutAmount: payout,
-        };
       }
-      return b;
-    });
+    }
 
-    setUsers(Array.from(updatedUsersMap.values()));
-    setBets(updatedBets);
+    // Mark this matchup completed
+    await supabase
+      .from('matchups')
+      .update({ winner_id: winningName.id, status: 'completed' })
+      .eq('id', activeMatchup.id);
 
-    // Update current matchup as completed with winner
+    // Advance winner to next bracket slot
     const nextLoc = getNextMatchupLocation(activeMatchup.id);
-
-    setMatchups((prev) =>
-      prev.map((m) => {
-        if (m.id === activeMatchup.id) {
-          return {
-            ...m,
-            winnerId: winningName.id,
-            status: 'completed',
-          };
-        }
-
-        // Advance winner to next bracket slot
-        if (nextLoc && m.id === nextLoc.nextMatchupId) {
-          return {
-            ...m,
-            nameA: nextLoc.slot === 'A' ? winningName : m.nameA,
-            nameB: nextLoc.slot === 'B' ? winningName : m.nameB,
-          };
-        }
-
-        // Activate next day's match
-        if (m.dayNumber === currentDay + 1) {
-          return {
-            ...m,
-            status: 'live',
-          };
-        }
-
-        return m;
-      })
-    );
-
-    // Increment day counter
-    if (currentDay < 63) {
-      setCurrentDay((d) => d + 1);
-    }
-  };
-
-  const jumpToDay = (targetDay: number) => {
-    if (targetDay < 1 || targetDay > 63) return;
-
-    // Simulate days up to targetDay - 1 if jumping forward
-    let updatedMatchups = [...matchups];
-
-    for (let day = 1; day < targetDay; day++) {
-      const match = updatedMatchups.find((m) => m.dayNumber === day);
-      if (match && match.nameA && match.nameB && !match.winnerId) {
-        // Pick winner by higher popularity seed or random
-        const winner = match.nameA.popularity >= match.nameB.popularity ? match.nameA : match.nameB;
-        match.winnerId = winner.id;
-        match.status = 'completed';
-
-        // Add dummy votes if 0
-        if (match.votesA === 0 && match.votesB === 0) {
-          match.votesA = Math.floor(Math.random() * 500) + 200;
-          match.votesB = Math.floor(Math.random() * 500) + 150;
-          match.countA = Math.floor(Math.random() * 5) + 1;
-          match.countB = Math.floor(Math.random() * 5) + 1;
-        }
-
-        const nextLoc = getNextMatchupLocation(match.id);
-        if (nextLoc) {
-          const nextMatch = updatedMatchups.find((m) => m.id === nextLoc.nextMatchupId);
-          if (nextMatch) {
-            if (nextLoc.slot === 'A') nextMatch.nameA = winner;
-            if (nextLoc.slot === 'B') nextMatch.nameB = winner;
-          }
-        }
+    if (nextLoc) {
+      const nextRaw = rawMatchups.find((m) => m.id === nextLoc.nextMatchupId);
+      if (nextRaw) {
+        await supabase
+          .from('matchups')
+          .update({
+            name_a_id: nextLoc.slot === 'A' ? winningName.id : nextRaw.name_a_id,
+            name_b_id: nextLoc.slot === 'B' ? winningName.id : nextRaw.name_b_id,
+          })
+          .eq('id', nextLoc.nextMatchupId);
       }
     }
 
-    // Set target day match to live
-    updatedMatchups = updatedMatchups.map((m) => {
-      if (m.dayNumber === targetDay) {
-        return {
-          ...m,
-          status: 'live',
-          // Ensure dummy votes so odds look alive
-          votesA: m.votesA || Math.floor(Math.random() * 400) + 100,
-          votesB: m.votesB || Math.floor(Math.random() * 400) + 100,
-          countA: m.countA || 2,
-          countB: m.countB || 2,
-        };
-      }
-      return m;
-    });
+    // Activate next day's match
+    const nextDayMatch = rawMatchups.find((m) => m.day_number === activeMatchup.dayNumber + 1);
+    if (nextDayMatch) {
+      await supabase.from('matchups').update({ status: 'live' }).eq('id', nextDayMatch.id);
+    }
 
-    setMatchups(updatedMatchups);
-    setCurrentDay(targetDay);
+    await fetchAll();
   };
 
-  const seedSimulatedVotesForCurrentMatchup = () => {
-    if (!currentMatchup) return;
-    setMatchups((prev) =>
-      prev.map((m) => {
-        if (m.id === currentMatchup.id) {
-          return {
-            ...m,
-            votesA: m.votesA + Math.floor(Math.random() * 300) + 100,
-            votesB: m.votesB + Math.floor(Math.random() * 300) + 100,
-            countA: m.countA + Math.floor(Math.random() * 3) + 1,
-            countB: m.countB + Math.floor(Math.random() * 3) + 1,
-          };
-        }
-        return m;
-      })
-    );
-  };
-
-  const resetTournament = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setNames(INITIAL_NAMES);
-    const initialM = createInitialMatchups(INITIAL_NAMES);
-    initialM[0].status = 'live';
-    initialM[0].votesA = 650;
-    initialM[0].votesB = 250;
-    initialM[0].countA = 3;
-    initialM[0].countB = 1;
-
-    setMatchups(initialM);
-    setUsers(DEFAULT_USERS);
-    setCurrentUserId(DEFAULT_USERS[0].id);
-    setCurrentDay(1);
-    setBets([]);
-    setComments([]);
-  };
-
-  const addComment = (matchupId: number, text: string, nameId?: string) => {
-    if (!text.trim()) return;
-    const newComment: Comment = {
-      id: 'c_' + Date.now(),
-      userId: currentUser.id,
-      userName: currentUser.name,
-      userAvatar: currentUser.avatar,
-      matchupId,
-      nameId,
+  const addComment = async (matchupId: number, text: string, nameId?: string) => {
+    if (!text.trim() || !currentUser) return;
+    await supabase.from('comments').insert({
+      user_id: currentUser.id,
+      user_name: currentUser.name,
+      user_avatar: currentUser.avatar,
+      matchup_id: matchupId,
+      name_id: nameId || null,
       text: text.trim(),
-      timestamp: Date.now(),
-      likes: 0,
-    };
-    setComments((prev) => [newComment, ...prev]);
+    });
+    await fetchAll();
   };
 
-  const toggleParentFavorite = (nameId: string) => {
-    setNames((prev) =>
-      prev.map((n) => (n.id === nameId ? { ...n, parentFavorite: !n.parentFavorite } : n))
-    );
+  const toggleParentFavorite = async (nameId: string) => {
+    const nameObj = names.find((n) => n.id === nameId);
+    if (!nameObj) return;
+    await supabase
+      .from('baby_names')
+      .update({ parent_favorite: !nameObj.parentFavorite })
+      .eq('id', nameId);
+    await fetchAll();
   };
 
   return (
@@ -446,15 +370,14 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         currentUser,
         bets,
         comments,
+        loading,
         switchUser,
         createUser,
         placeBet,
         advanceToNextDay,
-        jumpToDay,
-        resetTournament,
         addComment,
         toggleParentFavorite,
-        seedSimulatedVotesForCurrentMatchup,
+        refreshAll: fetchAll,
       }}
     >
       {children}
