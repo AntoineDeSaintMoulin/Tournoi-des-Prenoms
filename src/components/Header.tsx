@@ -7,8 +7,8 @@ interface HeaderProps {
   onOpenParentControls: () => void;
   onOpenBetsHistory: () => void;
   onOpenCreateUser: () => void;
-  activeTab: 'match' | 'bracket' | 'leaderboard' | 'catalog';
-  setActiveTab: (tab: 'match' | 'bracket' | 'leaderboard' | 'catalog') => void;
+  activeTab: 'match' | 'bracket' | 'leaderboard' | 'catalog' | 'manageNames';
+  setActiveTab: (tab: 'match' | 'bracket' | 'leaderboard' | 'catalog' | 'manageNames') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -229,6 +229,19 @@ export const Header: React.FC<HeaderProps> = ({
               <Sparkles className="w-3.5 h-3.5" />
               Les 64 Prénoms
             </button>
+            {currentUser.role === 'parent' && (
+              <button
+                onClick={() => setActiveTab('manageNames')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  activeTab === 'manageNames'
+                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Shield className="w-3.5 h-3.5" />
+                Gérer les Prénoms
+              </button>
+            )}
           </nav>
         </div>
       </div>
