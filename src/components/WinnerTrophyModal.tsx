@@ -1,25 +1,26 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { useTournament } from '../context/TournamentContext';
-import { Trophy, Crown, Heart, Sparkles, Volume2, RotateCcw } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 
 export const WinnerTrophyModal: React.FC = () => {
-  const { matchups, names, resetTournament } = useTournament();
+  const { matchups, names } = useTournament();
 
-  const finalMatch = matchups.find((m) => m.id === 63);
+  // Le match final est celui du tour le plus élevé (fonctionne quel que soit le nombre de prénoms)
+  const finalMatch = matchups.length > 0
+    ? matchups.reduce((max, m) => (m.round > max.round ? m : max), matchups[0])
+    : null;
   const winnerId = finalMatch?.winnerId;
   const winnerObj = winnerId ? names.find((n) => n.id === winnerId) : null;
 
   useEffect(() => {
     if (winnerObj) {
-      // Fire confetti celebration
       confetti({
         particleCount: 120,
         spread: 80,
         origin: { y: 0.6 },
       });
 
-      // Voice announcement
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(
           `Le grand vainqueur du tournoi des prénoms est : ${winnerObj.name} !`
@@ -46,41 +47,27 @@ export const WinnerTrophyModal: React.FC = () => {
           <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight mt-3 mb-2">
             {winnerObj.name}
           </h2>
-          <p className="text-sm text-amber-300 font-semibold italic">
-            « {winnerObj.meaning} »
-          </p>
+          {winnerObj.meaning && (
+            <p className="text-sm text-amber-300 font-semibold italic">
+              « {winnerObj.meaning} »
+            </p>
+          )}
         </div>
 
-        {/* Winner Details Card */}
         <div className="bg-slate-950/80 border border-amber-500/30 rounded-2xl p-5 text-left space-y-2 text-xs">
           <div className="flex justify-between border-b border-slate-800 pb-2">
             <span className="text-slate-400 font-medium">Origine & Style :</span>
-            <span className="text-white font-bold">{winnerObj.origin} • {winnerObj.style}</span>
-          </div>
-          <div className="flex justify-between border-b border-slate-800 pb-2">
-            <span className="text-slate-400 font-medium">Nombre de jours de compétition :</span>
-            <span className="text-amber-300 font-bold">63 Jours de duels</span>
+            <span className="text-white font-bold">{winnerObj.origin || '—'} • {winnerObj.style || '—'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400 font-medium">Candidats éliminés :</span>
-            <span className="text-emerald-400 font-bold">63 autres prénoms !</span>
+            <span className="text-emerald-400 font-bold">{matchups.length} matchs joués !</span>
           </div>
         </div>
 
         <p className="text-xs text-slate-400 leading-relaxed">
-          Félicitations aux futurs parents et à toute la communauté des parieurs qui ont voté durant ces 63 jours !
+          Félicitations aux futurs parents et à toute la communauté des parieurs qui ont voté durant ce tournoi !
         </p>
-
-        <button
-          onClick={() => {
-            if (confirm('Voulez-vous lancer un nouveau tournoi de 63 jours ?')) {
-              resetTournament();
-            }
-          }}
-          className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm py-3.5 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2"
-        >
-          <RotateCcw className="w-4 h-4" /> Relancer un nouveau tournoi
-        </button>
       </div>
     </div>
   );
