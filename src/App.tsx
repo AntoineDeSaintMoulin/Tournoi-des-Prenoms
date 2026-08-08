@@ -5,6 +5,7 @@ import { MatchOfTheDay } from './components/MatchOfTheDay';
 import { TournamentBracket } from './components/TournamentBracket';
 import { Leaderboard } from './components/Leaderboard';
 import { NamesCatalog } from './components/NamesCatalog';
+import { ManageNames } from './components/ManageNames';
 import { ParentControlsModal } from './components/ParentControlsModal';
 import { BetsHistoryModal } from './components/BetsHistoryModal';
 import { CreateUserModal } from './components/CreateUserModal';
@@ -14,7 +15,7 @@ import { Matchup } from './types';
 import { Trophy, Shield, Heart } from 'lucide-react';
 
 function AppContent() {
-  const [activeTab, setActiveTab] = useState<'match' | 'bracket' | 'leaderboard' | 'catalog'>('match');
+  const [activeTab, setActiveTab] = useState<'match' | 'bracket' | 'leaderboard' | 'catalog' | 'manageNames'>('match');
   const [showParentControls, setShowParentControls] = useState<boolean>(false);
   const [showBetsHistory, setShowBetsHistory] = useState<boolean>(false);
   const [showCreateUser, setShowCreateUser] = useState<boolean>(false);
@@ -41,6 +42,7 @@ function AppContent() {
           <Leaderboard onOpenCreateUser={() => setShowCreateUser(true)} />
         )}
         {activeTab === 'catalog' && <NamesCatalog />}
+        {activeTab === 'manageNames' && <ManageNames />}
       </main>
 
       {/* Footer */}
