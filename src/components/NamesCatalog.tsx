@@ -22,7 +22,9 @@ export const NamesCatalog: React.FC = () => {
 
   // Determine status of each name in tournament
   const getNameStatus = (nameId: string): 'champion' | 'in_running' | 'eliminated' => {
-    const finalMatch = matchups.find((m) => m.id === 63);
+    const finalMatch = matchups.length > 0
+      ? matchups.reduce((max, m) => (m.round > max.round ? m : max), matchups[0])
+      : undefined;
     if (finalMatch?.winnerId === nameId) return 'champion';
 
     // Check if name has lost any completed match
