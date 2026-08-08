@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TournamentProvider } from './context/TournamentContext';
+import { TournamentProvider, useTournament } from './context/TournamentContext';
 import { Header } from './components/Header';
 import { MatchOfTheDay } from './components/MatchOfTheDay';
 import { TournamentBracket } from './components/TournamentBracket';
@@ -15,11 +15,46 @@ import { Matchup } from './types';
 import { Trophy, Shield, Heart } from 'lucide-react';
 
 function AppContent() {
+  const { loading, currentUser } = useTournament();
   const [activeTab, setActiveTab] = useState<'match' | 'bracket' | 'leaderboard' | 'catalog' | 'manageNames'>('match');
   const [showParentControls, setShowParentControls] = useState<boolean>(false);
   const [showBetsHistory, setShowBetsHistory] = useState<boolean>(false);
   const [showCreateUser, setShowCreateUser] = useState<boolean>(false);
   const [selectedMatchup, setSelectedMatchup] = useState<Matchup | null>(null);
+
+  // Chargement initial des données Supabase
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <Trophy className="w-10 h-10 text-amber-400 mx-auto animate-pulse" />
+          <p className="text-sm text-slate-400">Chargement du tournoi...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Aucun profil sélectionné : on force la création d'un compte avant d'aller plus loin
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+        <div className="text-center space-y-4 max-w-sm">
+          <Trophy className="w-12 h-12 text-amber-400 mx-auto" />
+          <h1 className="text-xl font-black text-white">Bienvenue au Tournoi des Prénoms !</h1>
+          <p className="text-sm text-slate-400">
+            Crée ton profil pour commencer à parier sur le prénom gagnant.
+          </p>
+          <button
+            onClick={() => setShowCreateUser(true)}
+            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm px-6 py-3 rounded-xl shadow-lg transition-all"
+          >
+            Créer mon profil
+          </button>
+        </div>
+        <CreateUserModal isOpen={showCreateUser} onClose={() => setShowCreateUser(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased flex flex-col selection:bg-amber-500 selection:text-slate-950">
