@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTournament } from '../context/TournamentContext';
-import { Shield, Play, RotateCcw, Calendar, CheckCircle2, TrendingUp, X } from 'lucide-react';
+import { Shield, Play, Calendar, X } from 'lucide-react';
 
 interface ParentControlsModalProps {
   isOpen: boolean;
@@ -8,16 +8,7 @@ interface ParentControlsModalProps {
 }
 
 export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen, onClose }) => {
-  const {
-    currentDay,
-    currentMatchup,
-    advanceToNextDay,
-    jumpToDay,
-    resetTournament,
-    seedSimulatedVotesForCurrentMatchup,
-  } = useTournament();
-
-  const [targetJumpDay, setTargetJumpDay] = useState<number>(currentDay);
+  const { currentDay, currentMatchup, advanceToNextDay } = useTournament();
 
   if (!isOpen) return null;
 
@@ -36,9 +27,9 @@ export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen
             <Shield className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-xl font-black text-white">Espace Parents — Contrôles & Simulation</h3>
+            <h3 className="text-xl font-black text-white">Espace Parents</h3>
             <p className="text-xs text-slate-400">
-              Gérez le déroulement du tournoi sur 63 jours, qualifiez les candidats ou simulez la progression.
+              Déclarez le vainqueur du jour pour faire avancer le tournoi.
             </p>
           </div>
         </div>
@@ -46,7 +37,9 @@ export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen
         {/* Current Day Control */}
         <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
           <div className="flex items-center justify-between text-xs font-bold text-slate-300">
-            <span>Match du Jour actuel :</span>
+            <span className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" /> Match du Jour actuel :
+            </span>
             <span className="text-amber-400 font-mono">Jour #{currentDay} / 63</span>
           </div>
 
@@ -61,94 +54,37 @@ export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen
             </div>
           )}
 
-          {/* Action 1: Advance Day */}
+          {/* Auto: winner by most bets */}
           <button
-            onClick={() => {
-              advanceToNextDay();
-            }}
+            onClick={() => advanceToNextDay()}
             className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
           >
             <Play className="w-4 h-4 fill-slate-950" />
-            Clôturer le Jour #{currentDay} & Passer au Jour #{currentDay + 1}
+            Clôturer le Jour #{currentDay} (vainqueur = le plus parié)
           </button>
 
-          {/* Veto options */}
+          {/* Manual choice */}
           {currentMatchup && currentMatchup.nameA && currentMatchup.nameB && (
             <div className="pt-2">
               <div className="text-[11px] font-bold text-slate-400 mb-2">
-                👑 Choisir le vainqueur officiel (Veto Parents) :
+                👑 Ou choisir directement le vainqueur officiel :
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => {
-                    advanceToNextDay(currentMatchup.nameA!.id);
-                  }}
+                  onClick={() => advanceToNextDay(currentMatchup.nameA!.id)}
                   className="bg-slate-900 hover:bg-amber-500/20 hover:border-amber-400 border border-slate-800 text-slate-200 hover:text-amber-300 text-xs font-bold py-2 rounded-xl transition-all"
                 >
-                  Qualifier {currentMatchup.nameA.name}
+                  {currentMatchup.nameA.name}
                 </button>
                 <button
-                  onClick={() => {
-                    advanceToNextDay(currentMatchup.nameB!.id);
-                  }}
+                  onClick={() => advanceToNextDay(currentMatchup.nameB!.id)}
                   className="bg-slate-900 hover:bg-amber-500/20 hover:border-amber-400 border border-slate-800 text-slate-200 hover:text-amber-300 text-xs font-bold py-2 rounded-xl transition-all"
                 >
-                  Qualifier {currentMatchup.nameB.name}
+                  {currentMatchup.nameB.name}
                 </button>
               </div>
             </div>
           )}
-        </div>
-
-        {/* Time Travel / Jump to Day */}
-        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-300">
-            <span>Sauter dans le temps (Simulateur) :</span>
-            <span className="text-amber-400 font-mono">Jour {targetJumpDay}</span>
-          </div>
-
-          <input
-            type="range"
-            min="1"
-            max="63"
-            value={targetJumpDay}
-            onChange={(e) => setTargetJumpDay(parseInt(e.target.value, 10))}
-            className="w-full accent-amber-500"
-          />
-
-          <button
-            onClick={() => {
-              jumpToDay(targetJumpDay);
-            }}
-            className="w-full bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
-          >
-            <Calendar className="w-4 h-4" />
-            Aller au Jour #{targetJumpDay}
-          </button>
-        </div>
-
-        {/* Simulated Votes Generator */}
-        <button
-          onClick={seedSimulatedVotesForCurrentMatchup}
-          className="w-full bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
-        >
-          <TrendingUp className="w-4 h-4 text-emerald-400" />
-          Injecter des paris aléatoires de la communauté
-        </button>
-
-        {/* Danger zone: Reset */}
-        <div className="pt-2 border-t border-slate-800 text-center">
-          <button
-            onClick={() => {
-              if (confirm('Voulez-vous vraiment réinitialiser tout le tournoi au Jour 1 ?')) {
-                resetTournament();
-                onClose();
-              }
-            }}
-            className="text-xs text-rose-400 hover:underline flex items-center justify-center gap-1 mx-auto"
-          >
-            <RotateCcw className="w-3.5 h-3.5" /> Réinitialiser le tournoi à zéro
-          </button>
         </div>
       </div>
     </div>
