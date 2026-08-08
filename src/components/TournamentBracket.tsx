@@ -50,7 +50,9 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
   };
 
   // Get final match & winner if present
-  const finalMatch = matchups.find((m) => m.id === 63);
+  const finalMatch = matchups.length > 0
+    ? matchups.reduce((max, m) => (m.round > max.round ? m : max), matchups[0])
+    : undefined;
   const winnerId = finalMatch?.winnerId;
   const winnerObj = winnerId ? names.find((n) => n.id === winnerId) : null;
 
