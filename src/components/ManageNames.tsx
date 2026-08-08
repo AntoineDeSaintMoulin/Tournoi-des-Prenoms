@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Trash2, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Sparkles, AlertCircle, CheckCircle2, GitBranch } from 'lucide-react';
 
 interface BabyNameRow {
   id: string;
@@ -120,6 +120,93 @@ export const ManageNames: React.FC = () => {
   };
 
   const remaining = 64 - names.length;
+  const [generating, setGenerating] = useState(false);
+  const [bracketExists, setBracketExists] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from('matchups')
+      .select('id', { count: 'exact', head: true })
+      .then(({ count }) => setBracketExists(!!count && count > 0));
+  }, [names]);
+
+  const isPowerOfTwo = (n: number) => n > 0 && (n & (n - 1)) === 0;
+
+  const handleGenerateBracket = async () => {
+    if (!isPowerOfTwo(names.length)) {
+      setError(
+        `Le nombre de prénoms doit être une puissance de 2 (2, 4, 8, 16, 32, 64) pour générer un tableau équilibré. Actuellement : ${names.length}.`
+      );
+      return;
+    }
+    if (
+      !confirm(
+        `Générer le tableau à partir de ${names.length} prénoms ? Ça va créer/écraser tous les matchs existants.`
+      )
+    )
+      return;
+
+    setGenerating(true);
+    setError(null);
+
+    // Supprime l'ancien tableau s'il existe
+    await supabase.from('matchups').delete().neq('id', -1);
+
+    // Mélange les prénoms (tirage au sort des seeds)
+    const shuffled = [...names].sort(() => Math.random() - 0.5);
+
+    const totalMatches = shuffled.length - 1;
+    const totalRounds = Math.log2(shuffled.length);
+    const firstRoundMatches = shuffled.length / 2;
+
+    const matchupsToInsert: any[] = [];
+
+    // Premier tour : on associe les prénoms mélangés deux par deux
+    for (let i = 0; i < firstRoundMatches; i++) {
+      matchupsToInsert.push({
+        id: i + 1,
+        round: 1,
+        day_number: i + 1,
+        name_a_id: shuffled[i * 2].id,
+        name_b_id: shuffled[i * 2 + 1].id,
+        status: i === 0 ? 'live' : 'upcoming',
+      });
+    }
+
+    // Tours suivants : matchs vides, remplis au fur et à mesure des résultats
+    let dayCounter = firstRoundMatches + 1;
+    let matchIdCounter = firstRoundMatches + 1;
+    let matchesInRound = firstRoundMatches / 2;
+    let round = 2;
+
+    while (matchesInRound >= 1) {
+      for (let i = 0; i < matchesInRound; i++) {
+        matchupsToInsert.push({
+          id: matchIdCounter,
+          round,
+          day_number: dayCounter,
+          name_a_id: null,
+          name_b_id: null,
+          status: 'upcoming',
+        });
+        matchIdCounter++;
+        dayCounter++;
+      }
+      matchesInRound = matchesInRound / 2;
+      round++;
+    }
+
+    const { error: insertError } = await supabase.from('matchups').insert(matchupsToInsert);
+
+    setGenerating(false);
+
+    if (insertError) {
+      setError(insertError.message);
+    } else {
+      setBracketExists(true);
+      alert(`Tableau généré avec succès ! ${matchupsToInsert.length} matchs créés sur ${totalRounds} tours.`);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
@@ -150,8 +237,23 @@ export const ManageNames: React.FC = () => {
         {names.length === 64 && (
           <div className="mt-4 flex items-center gap-2 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
-            Les 64 prénoms sont complets ! Le tableau du tournoi pourra être généré à l'étape suivante.
+            Les 64 prénoms sont complets !
           </div>
+        )}
+
+        {isPowerOfTwo(names.length) && names.length >= 2 && (
+          <button
+            onClick={handleGenerateBracket}
+            disabled={generating}
+            className="mt-4 w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-50 border border-amber-500/30 text-amber-300 font-bold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+          >
+            <GitBranch className="w-4 h-4" />
+            {generating
+              ? 'Génération en cours...'
+              : bracketExists
+              ? `Régénérer le tableau (${names.length} prénoms)`
+              : `Générer le tableau du tournoi (${names.length} prénoms)`}
+          </button>
         )}
       </div>
 
