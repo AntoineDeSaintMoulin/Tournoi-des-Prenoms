@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTournament } from '../context/TournamentContext';
 import { hashPassword } from '../utils/password';
-import { UserPlus, X, Sparkles, Lock } from 'lucide-react';
+import { UserPlus, X, Sparkles, Lock, Eye, EyeOff } from 'lucide-react';
 
 interface CreateUserModalProps {
   isOpen: boolean;
@@ -10,13 +10,46 @@ interface CreateUserModalProps {
 
 // Code à changer par toi-même avant d'envoyer le lien aux joueurs.
 // Seules les personnes connaissant ce code peuvent devenir "Parent".
-const PARENT_SECRET_CODE = 'PRENOM2026';
+const PARENT_SECRET_CODE = 'Basile1501';
 
 const AVATAR_OPTIONS = [
   '🦁', '🐼', '🦊', '🐨', '🐸', '🐧', '🦄', '🐙', '🐢', '🦉', '🐯', '🐰',
   '🐶', '🐱', '🐭', '🐹', '🐻', '🐷', '🐮', '🐵', '🦋', '🐝', '🐳', '🐬',
   '🦈', '🦩', '🦫', '🦦', '🦥', '🐿️', '🦔', '🦖', '🐲', '🦅', '🦜', '🐴',
 ];
+
+// Champ mot de passe avec bouton "afficher / masquer" intégré,
+// pour pouvoir se relire et corriger une faute de frappe.
+const PasswordField: React.FC<{
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  required?: boolean;
+  minLength?: number;
+}> = ({ value, onChange, placeholder, required, minLength }) => {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        type={visible ? 'text' : 'password'}
+        required={required}
+        minLength={minLength}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pr-11 text-sm text-white focus:border-amber-400 focus:outline-none"
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+        tabIndex={-1}
+      >
+        {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+      </button>
+    </div>
+  );
+};
 
 export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose }) => {
   const { createUser } = useTournament();
@@ -114,14 +147,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
             <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
               Mot de passe
             </label>
-            <input
-              type="password"
+            <PasswordField
+              value={password}
+              onChange={setPassword}
+              placeholder="Au moins 4 caractères..."
               required
               minLength={4}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Au moins 4 caractères..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-amber-400 focus:outline-none"
             />
           </div>
 
@@ -129,13 +160,11 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
             <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
               Confirme ton mot de passe
             </label>
-            <input
-              type="password"
-              required
+            <PasswordField
               value={passwordConfirm}
-              onChange={(e) => setPasswordConfirm(e.target.value)}
+              onChange={setPasswordConfirm}
               placeholder="Retape ton mot de passe..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-amber-400 focus:outline-none"
+              required
             />
           </div>
 
@@ -158,15 +187,13 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
                 <label className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                   <Lock className="w-3 h-3" /> Code organisateur
                 </label>
-                <input
-                  type="password"
+                <PasswordField
                   value={secretCode}
-                  onChange={(e) => {
-                    setSecretCode(e.target.value);
+                  onChange={(v) => {
+                    setSecretCode(v);
                     setCodeError('');
                   }}
                   placeholder="Code secret..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-amber-400 focus:outline-none"
                 />
                 {codeError && <p className="text-[11px] text-rose-400 mt-1.5">{codeError}</p>}
               </div>
