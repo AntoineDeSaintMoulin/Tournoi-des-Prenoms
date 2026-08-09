@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
 import { BabyName, Matchup, User, Bet, Comment } from '../types';
 import { calculateOdds, calculatePotentialPayout } from '../utils/odds';
-import { getNextMatchupLocation } from '../utils/tournament';
+import { supabase } from '../lib/supabase';
 
 interface TournamentContextType {
   currentDay: number;
@@ -15,22 +14,22 @@ interface TournamentContextType {
   comments: Comment[];
   loading: boolean;
 
+  // Actions
   switchUser: (userId: string) => void;
   createUser: (name: string, role: 'parent' | 'bettor', avatar?: string) => Promise<void>;
   placeBet: (matchupId: number, nameId: string, amount: number) => Promise<{ success: boolean; message: string }>;
   advanceToNextDay: (winnerIdOverride?: string) => Promise<void>;
   addComment: (matchupId: number, text: string, nameId?: string) => Promise<void>;
   toggleParentFavorite: (nameId: string) => Promise<void>;
-  refreshAll: () => Promise<void>;
 }
 
-const CURRENT_USER_KEY = 'prenom_tournament_current_user_v1';
+const CURRENT_USER_KEY = 'prenom_tournament_current_user';
 
 const TournamentContext = createContext<TournamentContextType | undefined>(undefined);
 
-// ---- Mappers: snake_case (Supabase) -> camelCase (App types) ----
+// ---------- Mappers: lignes Supabase (snake_case) -> types de l'app (camelCase) ----------
 
-function mapName(row: any): BabyName {
+function mapBabyName(row: any): BabyName {
   return {
     id: row.id,
     name: row.name,
@@ -38,7 +37,7 @@ function mapName(row: any): BabyName {
     origin: row.origin || '',
     meaning: row.meaning || '',
     style: row.style || '',
-    popularity: row.popularity || 50,
+    popularity: row.popularity || 0,
     syllables: row.syllables || undefined,
     parentFavorite: row.parent_favorite || false,
     seed: row.seed,
@@ -50,7 +49,7 @@ function mapUser(row: any): User {
     id: row.id,
     name: row.name,
     role: row.role,
-    avatar: row.avatar || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
+    avatar: row.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
     points: Number(row.points),
     totalWon: Number(row.total_won),
     totalBetsCount: row.total_bets_count,
@@ -89,21 +88,8 @@ function mapComment(row: any): Comment {
   };
 }
 
-export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [names, setNames] = useState<BabyName[]>([]);
-  const [rawMatchups, setRawMatchups] = useState<any[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [bets, setBets] = useState<Bet[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(
-    () => localStorage.getItem(CURRENT_USER_KEY)
-  );
-  const [loading, setLoading] = useState(true);
-
-  // Assemble matchups (joining names by id, like the old local model)
-  const namesById = new Map(names.map((n) => [n.id, n]));
-  const matchups: Matchup[] = rawMatchups
-    .sort((a, b) => a.id - b.id)
+function buildMatchups(matchupRows: any[], namesById: Map<string, BabyName>): Matchup[] {
+  return matchupRows
     .map((m) => ({
       id: m.id,
       round: m.round,
@@ -117,15 +103,22 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       winnerId: m.winner_id,
       status: m.status,
       parentChoiceId: m.parent_choice_id,
-    }));
+    }))
+    .sort((a, b) => a.id - b.id);
+}
 
-  const currentDay = matchups.find((m) => m.status === 'live')?.dayNumber
-    || matchups.find((m) => m.status !== 'completed')?.dayNumber
-    || 1;
+export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [names, setNames] = useState<BabyName[]>([]);
+  const [matchups, setMatchups] = useState<Matchup[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>(
+    () => localStorage.getItem(CURRENT_USER_KEY) || ''
+  );
+  const [bets, setBets] = useState<Bet[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const currentMatchup = matchups.find((m) => m.dayNumber === currentDay) || null;
-  const currentUser = users.find((u) => u.id === currentUserId) || users[0];
-
+  // ---------- Chargement initial depuis Supabase ----------
   const fetchAll = useCallback(async () => {
     const [namesRes, matchupsRes, usersRes, betsRes, commentsRes] = await Promise.all([
       supabase.from('baby_names').select('*').order('seed', { ascending: true }),
@@ -135,18 +128,22 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       supabase.from('comments').select('*').order('created_at', { ascending: false }),
     ]);
 
-    if (namesRes.data) setNames(namesRes.data.map(mapName));
-    if (matchupsRes.data) setRawMatchups(matchupsRes.data);
-    if (usersRes.data) setUsers(usersRes.data.map(mapUser));
-    if (betsRes.data) setBets(betsRes.data.map(mapBet));
-    if (commentsRes.data) setComments(commentsRes.data.map(mapComment));
+    const mappedNames = (namesRes.data || []).map(mapBabyName);
+    const namesById = new Map(mappedNames.map((n) => [n.id, n]));
 
+    setNames(mappedNames);
+    setMatchups(buildMatchups(matchupsRes.data || [], namesById));
+    setUsers((usersRes.data || []).map(mapUser));
+    setBets((betsRes.data || []).map(mapBet));
+    setComments((commentsRes.data || []).map(mapComment));
     setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchAll();
 
+    // Abonnement temps réel : dès qu'une table change, on recharge tout
+    // (simple et fiable pour ce volume de données ; on optimisera si besoin plus tard)
     const channel = supabase
       .channel('tournament_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'baby_names' }, fetchAll)
@@ -160,6 +157,28 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       supabase.removeChannel(channel);
     };
   }, [fetchAll]);
+
+  // Choisit un utilisateur par défaut une fois les users chargés, si aucun n'est encore sélectionné
+  useEffect(() => {
+    if (!currentUserId && users.length > 0) {
+      setCurrentUserId(users[0].id);
+      localStorage.setItem(CURRENT_USER_KEY, users[0].id);
+    }
+  }, [users, currentUserId]);
+
+  const currentUser = users.find((u) => u.id === currentUserId) || users[0] || {
+    id: '',
+    name: 'Invité',
+    role: 'bettor' as const,
+    avatar: '',
+    points: 0,
+    totalWon: 0,
+    totalBetsCount: 0,
+    winningBetsCount: 0,
+  };
+
+  const currentMatchup = matchups.find((m) => m.status === 'live') || matchups[0] || null;
+  const currentDay = currentMatchup?.dayNumber || 1;
 
   const switchUser = (userId: string) => {
     setCurrentUserId(userId);
@@ -180,12 +199,14 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     if (!error && data) {
       switchUser(data.id);
-      await fetchAll();
     }
   };
 
-  const placeBet = async (matchupId: number, nameId: string, amount: number) => {
-    if (!currentUser) return { success: false, message: "Aucun utilisateur sélectionné." };
+  const placeBet = async (
+    matchupId: number,
+    nameId: string,
+    amount: number
+  ): Promise<{ success: boolean; message: string }> => {
     if (amount <= 0) {
       return { success: false, message: 'Le montant du pari doit être supérieur à 0 point.' };
     }
@@ -194,14 +215,18 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
 
     const targetMatchup = matchups.find((m) => m.id === matchupId);
-    if (!targetMatchup) return { success: false, message: 'Match introuvable.' };
+    if (!targetMatchup) {
+      return { success: false, message: 'Match introuvable.' };
+    }
     if (targetMatchup.status !== 'live') {
       return { success: false, message: 'Les paris sont fermés pour ce match.' };
     }
 
     const isA = targetMatchup.nameA?.id === nameId;
     const isB = targetMatchup.nameB?.id === nameId;
-    if (!isA && !isB) return { success: false, message: 'Prénom invalide pour ce match.' };
+    if (!isA && !isB) {
+      return { success: false, message: 'Prénom invalide pour ce match.' };
+    }
 
     const chosenNameObj = isA ? targetMatchup.nameA : targetMatchup.nameB;
     if (!chosenNameObj) return { success: false, message: 'Prénom non disponible.' };
@@ -210,7 +235,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const oddsAtBetTime = isA ? oddsA : oddsB;
     const potentialPayout = calculatePotentialPayout(amount, oddsAtBetTime);
 
-    // 1. Insert the bet
+    // 1) Enregistrer le pari
     const { error: betError } = await supabase.from('bets').insert({
       user_id: currentUser.id,
       matchup_id: matchupId,
@@ -220,7 +245,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       odds_at_bet_time: oddsAtBetTime,
       potential_payout: potentialPayout,
       status: 'active',
-      day_bet: targetMatchup.dayNumber,
+      day_bet: currentDay,
     });
 
     if (betError) {
@@ -228,11 +253,11 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         success: false,
         message: betError.message.includes('duplicate')
           ? 'Tu as déjà parié sur ce match.'
-          : betError.message,
+          : `Erreur : ${betError.message}`,
       };
     }
 
-    // 2. Deduct points from user
+    // 2) Débiter les points du joueur
     await supabase
       .from('users')
       .update({
@@ -241,7 +266,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       })
       .eq('id', currentUser.id);
 
-    // 3. Update matchup pool totals
+    // 3) Mettre à jour la cagnotte du match
     await supabase
       .from('matchups')
       .update({
@@ -261,25 +286,37 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const advanceToNextDay = async (winnerIdOverride?: string) => {
-    const activeMatchup = matchups.find((m) => m.dayNumber === currentDay);
-    if (!activeMatchup || !activeMatchup.nameA || !activeMatchup.nameB) return;
+    const activeMatchup = matchups.find((m) => m.status === 'live');
+
+    if (!activeMatchup) {
+      console.error('[advanceToNextDay] Aucun match "live" trouvé. Matchups actuels :', matchups);
+      alert('Erreur : aucun match en cours (statut "live") trouvé. Vérifie que le tableau a bien été généré.');
+      return;
+    }
+    if (!activeMatchup.nameA || !activeMatchup.nameB) {
+      console.error('[advanceToNextDay] Match incomplet :', activeMatchup);
+      alert(
+        `Erreur : ce match n'a pas ses deux prénoms définis (nameA=${activeMatchup.nameA?.name ?? 'null'}, nameB=${activeMatchup.nameB?.name ?? 'null'}).`
+      );
+      return;
+    }
+
+    console.log('[advanceToNextDay] Démarrage pour le match', activeMatchup.id, activeMatchup.nameA.name, 'vs', activeMatchup.nameB.name);
 
     let winningName: BabyName;
     if (winnerIdOverride) {
-      winningName = activeMatchup.nameA.id === winnerIdOverride ? activeMatchup.nameA : activeMatchup.nameB;
+      winningName =
+        activeMatchup.nameA.id === winnerIdOverride ? activeMatchup.nameA : activeMatchup.nameB;
     } else if (activeMatchup.votesA > activeMatchup.votesB) {
       winningName = activeMatchup.nameA;
     } else if (activeMatchup.votesB > activeMatchup.votesA) {
       winningName = activeMatchup.nameB;
     } else {
-      winningName = activeMatchup.nameA.seed < activeMatchup.nameB.seed ? activeMatchup.nameA : activeMatchup.nameB;
+      winningName =
+        activeMatchup.nameA.seed < activeMatchup.nameB.seed ? activeMatchup.nameA : activeMatchup.nameB;
     }
 
-    const { oddsA, oddsB } = calculateOdds(activeMatchup.votesA, activeMatchup.votesB);
-    const finalWinningOdds = winningName.id === activeMatchup.nameA.id ? oddsA : oddsB;
-    void finalWinningOdds;
-
-    // Resolve bets for this matchup
+    // 1) Résoudre les paris de ce match
     const matchBets = bets.filter((b) => b.matchupId === activeMatchup.id && b.status === 'active');
 
     for (const bet of matchBets) {
@@ -292,43 +329,42 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .eq('id', bet.id);
 
       if (isWin) {
-        const userObj = users.find((u) => u.id === bet.userId);
-        if (userObj) {
+        const bettor = users.find((u) => u.id === bet.userId);
+        if (bettor) {
           await supabase
             .from('users')
             .update({
-              points: userObj.points + payout,
-              total_won: userObj.totalWon + (payout - bet.pointsBet),
-              winning_bets_count: userObj.winningBetsCount + 1,
+              points: bettor.points + payout,
+              total_won: bettor.totalWon + (payout - bet.pointsBet),
+              winning_bets_count: bettor.winningBetsCount + 1,
             })
-            .eq('id', userObj.id);
+            .eq('id', bettor.id);
         }
       }
     }
 
-    // Mark this matchup completed
+    // 2) Marquer le match comme terminé
     await supabase
       .from('matchups')
       .update({ winner_id: winningName.id, status: 'completed' })
       .eq('id', activeMatchup.id);
 
-    // Advance winner to next bracket slot
-    const nextLoc = getNextMatchupLocation(activeMatchup.id);
-    if (nextLoc) {
-      const nextRaw = rawMatchups.find((m) => m.id === nextLoc.nextMatchupId);
-      if (nextRaw) {
-        await supabase
-          .from('matchups')
-          .update({
-            name_a_id: nextLoc.slot === 'A' ? winningName.id : nextRaw.name_a_id,
-            name_b_id: nextLoc.slot === 'B' ? winningName.id : nextRaw.name_b_id,
-          })
-          .eq('id', nextLoc.nextMatchupId);
+    // 3) Faire avancer le vainqueur au tour suivant (slot A ou B du prochain match)
+    const round = activeMatchup.round;
+    const matchesThisRound = matchups.filter((m) => m.round === round).sort((a, b) => a.id - b.id);
+    const indexInRound = matchesThisRound.findIndex((m) => m.id === activeMatchup.id);
+
+    if (round < 6) {
+      const nextRoundMatches = matchups.filter((m) => m.round === round + 1).sort((a, b) => a.id - b.id);
+      const nextMatch = nextRoundMatches[Math.floor(indexInRound / 2)];
+      if (nextMatch) {
+        const slot = indexInRound % 2 === 0 ? 'name_a_id' : 'name_b_id';
+        await supabase.from('matchups').update({ [slot]: winningName.id }).eq('id', nextMatch.id);
       }
     }
 
-    // Activate next day's match
-    const nextDayMatch = rawMatchups.find((m) => m.day_number === activeMatchup.dayNumber + 1);
+    // 4) Activer le match du jour suivant
+    const nextDayMatch = matchups.find((m) => m.dayNumber === activeMatchup.dayNumber + 1);
     if (nextDayMatch) {
       await supabase.from('matchups').update({ status: 'live' }).eq('id', nextDayMatch.id);
     }
@@ -337,7 +373,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const addComment = async (matchupId: number, text: string, nameId?: string) => {
-    if (!text.trim() || !currentUser) return;
+    if (!text.trim()) return;
     await supabase.from('comments').insert({
       user_id: currentUser.id,
       user_name: currentUser.name,
@@ -346,17 +382,15 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       name_id: nameId || null,
       text: text.trim(),
     });
-    await fetchAll();
   };
 
   const toggleParentFavorite = async (nameId: string) => {
-    const nameObj = names.find((n) => n.id === nameId);
-    if (!nameObj) return;
+    const target = names.find((n) => n.id === nameId);
+    if (!target) return;
     await supabase
       .from('baby_names')
-      .update({ parent_favorite: !nameObj.parentFavorite })
+      .update({ parent_favorite: !target.parentFavorite })
       .eq('id', nameId);
-    await fetchAll();
   };
 
   return (
@@ -377,7 +411,6 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         advanceToNextDay,
         addComment,
         toggleParentFavorite,
-        refreshAll: fetchAll,
       }}
     >
       {children}
