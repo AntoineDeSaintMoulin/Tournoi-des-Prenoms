@@ -12,27 +12,31 @@ import { CreateUserModal } from './components/CreateUserModal';
 import { MatchDetailsModal } from './components/MatchDetailsModal';
 import { WinnerTrophyModal } from './components/WinnerTrophyModal';
 import { Matchup } from './types';
+import { hashPassword } from './utils/password';
 import { Trophy, Shield, Heart } from 'lucide-react';
 
 function AppContent() {
-  const { loading, currentUser, loginByName } = useTournament();
+  const { loading, currentUser, login } = useTournament();
   const [activeTab, setActiveTab] = useState<'match' | 'bracket' | 'leaderboard' | 'catalog' | 'manageNames'>('match');
   const [showParentControls, setShowParentControls] = useState<boolean>(false);
   const [showBetsHistory, setShowBetsHistory] = useState<boolean>(false);
   const [showCreateUser, setShowCreateUser] = useState<boolean>(false);
   const [selectedMatchup, setSelectedMatchup] = useState<Matchup | null>(null);
   const [returningName, setReturningName] = useState<string>('');
+  const [returningPassword, setReturningPassword] = useState<string>('');
   const [returningError, setReturningError] = useState<string>('');
 
-  const handleReturningLogin = (e: React.FormEvent) => {
+  const handleReturningLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!returningName.trim()) return;
-    const result = loginByName(returningName.trim());
+    if (!returningName.trim() || !returningPassword) return;
+    const passwordHash = await hashPassword(returningPassword);
+    const result = login(returningName.trim(), passwordHash);
     if (!result.success) {
       setReturningError(result.message || 'Erreur.');
     } else {
       setReturningError('');
       setReturningName('');
+      setReturningPassword('');
     }
   };
 
@@ -80,6 +84,16 @@ function AppContent() {
                 setReturningError('');
               }}
               placeholder="J'ai déjà un profil : mon pseudo..."
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white text-center focus:border-amber-400 focus:outline-none"
+            />
+            <input
+              type="password"
+              value={returningPassword}
+              onChange={(e) => {
+                setReturningPassword(e.target.value);
+                setReturningError('');
+              }}
+              placeholder="Mon mot de passe..."
               className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white text-center focus:border-amber-400 focus:outline-none"
             />
             {returningError && <p className="text-xs text-rose-400">{returningError}</p>}
