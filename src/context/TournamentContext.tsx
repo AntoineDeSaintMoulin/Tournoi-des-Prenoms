@@ -21,6 +21,7 @@ interface TournamentContextType {
   advanceToNextDay: (winnerIdOverride?: string) => Promise<void>;
   addComment: (matchupId: number, text: string, nameId?: string) => Promise<void>;
   toggleParentFavorite: (nameId: string) => Promise<void>;
+  resetTournament: () => Promise<void>;
 }
 
 const CURRENT_USER_KEY = 'prenom_tournament_current_user';
@@ -393,6 +394,29 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       .eq('id', nameId);
   };
 
+  const resetTournament = async () => {
+    // 1) Supprime tous les paris et commentaires
+    await supabase.from('bets').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('comments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+    // 2) Supprime tous les matchs (le tableau devra être régénéré depuis "Gérer les Prénoms")
+    await supabase.from('matchups').delete().neq('id', -1);
+
+    // 3) Remet tous les utilisateurs à 1000 points et stats à zéro
+    for (const u of users) {
+      await supabase
+        .from('users')
+        .update({ points: 1000, total_won: 0, total_bets_count: 0, winning_bets_count: 0 })
+        .eq('id', u.id);
+    }
+
+    // 4) Retire les favoris parent (garde les prénoms eux-mêmes)
+    await supabase
+      .from('baby_names')
+      .update({ parent_favorite: false })
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+  };
+
   return (
     <TournamentContext.Provider
       value={{
@@ -411,6 +435,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         advanceToNextDay,
         addComment,
         toggleParentFavorite,
+        resetTournament,
       }}
     >
       {children}
