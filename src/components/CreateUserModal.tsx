@@ -9,16 +9,9 @@ interface CreateUserModalProps {
 
 // Code à changer par toi-même avant d'envoyer le lien aux joueurs.
 // Seules les personnes connaissant ce code peuvent devenir "Parent".
-const PARENT_SECRET_CODE = 'Basile1501';
+const PARENT_SECRET_CODE = 'PRENOM2026';
 
-const AVATAR_OPTIONS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-];
+const AVATAR_OPTIONS = ['🦁', '🐼', '🦊', '🐨', '🐸', '🐧', '🦄', '🐙', '🐢', '🦉', '🐯', '🐰'];
 
 export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose }) => {
   const { createUser } = useTournament();
@@ -26,13 +19,16 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
   const [wantsParentAccess, setWantsParentAccess] = useState<boolean>(false);
   const [secretCode, setSecretCode] = useState<string>('');
   const [codeError, setCodeError] = useState<string>('');
+  const [createError, setCreateError] = useState<string>('');
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string>(AVATAR_OPTIONS[0]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    setCreateError('');
 
     let role: 'parent' | 'bettor' = 'bettor';
 
@@ -44,7 +40,15 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
       role = 'parent';
     }
 
-    createUser(name.trim(), role, selectedAvatar);
+    setSubmitting(true);
+    const result = await createUser(name.trim(), role, selectedAvatar);
+    setSubmitting(false);
+
+    if (!result.success) {
+      setCreateError(result.message || 'Une erreur est survenue.');
+      return;
+    }
+
     setName('');
     setSecretCode('');
     onClose();
@@ -126,25 +130,34 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
               Choisir un Avatar
             </label>
             <div className="flex gap-3 overflow-x-auto pb-2">
-              {AVATAR_OPTIONS.map((imgUrl) => (
-                <img
-                  key={imgUrl}
-                  src={imgUrl}
-                  alt="Avatar"
-                  onClick={() => setSelectedAvatar(imgUrl)}
-                  className={`w-12 h-12 rounded-full object-cover cursor-pointer border-2 transition-all ${
-                    selectedAvatar === imgUrl ? 'border-amber-400 ring-2 ring-amber-400/40 scale-110' : 'border-slate-800 opacity-60 hover:opacity-100'
+              {AVATAR_OPTIONS.map((emoji) => (
+                <button
+                  type="button"
+                  key={emoji}
+                  onClick={() => setSelectedAvatar(emoji)}
+                  className={`w-12 h-12 shrink-0 rounded-full flex items-center justify-center text-2xl bg-slate-950 cursor-pointer border-2 transition-all ${
+                    selectedAvatar === emoji ? 'border-amber-400 ring-2 ring-amber-400/40 scale-110' : 'border-slate-800 opacity-60 hover:opacity-100'
                   }`}
-                />
+                >
+                  {emoji}
+                </button>
               ))}
             </div>
           </div>
 
+          {createError && (
+            <div className="text-xs text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3">
+              {createError}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 mt-4"
+            disabled={submitting}
+            className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-black text-sm py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 mt-4"
           >
-            <Sparkles className="w-4 h-4" /> Valider & Recevoir 1 000 Points
+            <Sparkles className="w-4 h-4" />
+            {submitting ? 'Création en cours...' : 'Valider & Recevoir 1 000 Points'}
           </button>
         </form>
       </div>
