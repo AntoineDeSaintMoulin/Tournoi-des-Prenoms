@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTournament } from '../context/TournamentContext';
-import { Trophy, Flame, Coins, Users, Sliders, Calendar, Sparkles, RefreshCw, UserPlus, Shield, ChevronDown } from 'lucide-react';
+import { Trophy, Flame, Coins, Users, Sliders, Calendar, Sparkles, RefreshCw, Shield, ChevronDown, LogOut } from 'lucide-react';
 import { formatPoints } from '../utils/odds';
 
 interface HeaderProps {
@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
 }) => {
-  const { currentDay, currentMatchup, currentUser, users, switchUser, bets } = useTournament();
+  const { currentDay, currentMatchup, currentUser, bets, logout } = useTournament();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   const activeBetsCount = bets.filter((b) => b.userId === currentUser.id && b.status === 'active').length;
@@ -115,41 +115,26 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Dropdown Menu */}
             {showUserDropdown && (
-              <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-2 z-50 text-slate-200 text-xs">
-                <div className="px-3 py-2 border-b border-slate-800 font-bold text-slate-400 text-[10px] uppercase tracking-wider flex items-center justify-between">
-                  <span>Changer de parieur</span>
-                  <button
-                    onClick={() => {
-                      setShowUserDropdown(false);
-                      onOpenCreateUser();
-                    }}
-                    className="text-amber-400 hover:underline flex items-center gap-1 text-[11px]"
-                  >
-                    <UserPlus className="w-3 h-3" /> Nouveau
-                  </button>
+              <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-2 z-50 text-slate-200 text-xs">
+                <div className="px-3 py-2.5 border-b border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <img src={currentUser.avatar} alt={currentUser.name} className="w-8 h-8 rounded-full object-cover border border-amber-400/50" />
+                    <div>
+                      <div className="font-bold text-slate-200">{currentUser.name}</div>
+                      <div className="text-amber-400 font-mono text-[11px]">{currentUser.points} PTS</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="max-h-56 overflow-y-auto py-1 space-y-1">
-                  {users.map((u) => (
-                    <button
-                      key={u.id}
-                      onClick={() => {
-                        switchUser(u.id);
-                        setShowUserDropdown(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
-                        u.id === currentUser.id
-                          ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
-                          : 'hover:bg-slate-800 text-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <img src={u.avatar} alt={u.name} className="w-6 h-6 rounded-full object-cover" />
-                        <span className="truncate max-w-[120px]">{u.name}</span>
-                      </div>
-                      <span className="text-[11px] font-mono text-amber-400">{u.points} PTS</span>
-                    </button>
-                  ))}
-                </div>
+                <button
+                  onClick={() => {
+                    setShowUserDropdown(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 mt-1 rounded-lg transition-colors hover:bg-rose-500/10 text-rose-300 font-bold"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Changer de profil / Se déconnecter
+                </button>
               </div>
             )}
           </div>
