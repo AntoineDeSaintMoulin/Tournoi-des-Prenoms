@@ -13,7 +13,7 @@ import { MatchDetailsModal } from './components/MatchDetailsModal';
 import { WinnerTrophyModal } from './components/WinnerTrophyModal';
 import { Matchup } from './types';
 import { hashPassword } from './utils/password';
-import { Trophy, Shield, Heart } from 'lucide-react';
+import { Trophy, Shield, Heart, Eye, EyeOff } from 'lucide-react';
 
 function AppContent() {
   const { loading, currentUser, login } = useTournament();
@@ -24,6 +24,7 @@ function AppContent() {
   const [selectedMatchup, setSelectedMatchup] = useState<Matchup | null>(null);
   const [returningName, setReturningName] = useState<string>('');
   const [returningPassword, setReturningPassword] = useState<string>('');
+  const [returningPasswordVisible, setReturningPasswordVisible] = useState<boolean>(false);
   const [returningError, setReturningError] = useState<string>('');
 
   const handleReturningLogin = async (e: React.FormEvent) => {
@@ -86,16 +87,26 @@ function AppContent() {
               placeholder="J'ai déjà un profil : mon pseudo..."
               className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white text-center focus:border-amber-400 focus:outline-none"
             />
-            <input
-              type="password"
-              value={returningPassword}
-              onChange={(e) => {
-                setReturningPassword(e.target.value);
-                setReturningError('');
-              }}
-              placeholder="Mon mot de passe..."
-              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white text-center focus:border-amber-400 focus:outline-none"
-            />
+            <div className="relative">
+              <input
+                type={returningPasswordVisible ? 'text' : 'password'}
+                value={returningPassword}
+                onChange={(e) => {
+                  setReturningPassword(e.target.value);
+                  setReturningError('');
+                }}
+                placeholder="Mon mot de passe..."
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 pr-11 text-sm text-white text-center focus:border-amber-400 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setReturningPasswordVisible((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                tabIndex={-1}
+              >
+                {returningPasswordVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
             {returningError && <p className="text-xs text-rose-400">{returningError}</p>}
             <button
               type="submit"
