@@ -9,7 +9,7 @@ interface TournamentContextType {
   matchups: Matchup[];
   names: BabyName[];
   users: User[];
-  currentUser: User;
+  currentUser: User | undefined;
   bets: Bet[];
   comments: Comment[];
   loading: boolean;
@@ -159,24 +159,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   }, [fetchAll]);
 
-  // Choisit un utilisateur par défaut une fois les users chargés, si aucun n'est encore sélectionné
-  useEffect(() => {
-    if (!currentUserId && users.length > 0) {
-      setCurrentUserId(users[0].id);
-      localStorage.setItem(CURRENT_USER_KEY, users[0].id);
-    }
-  }, [users, currentUserId]);
-
-  const currentUser = users.find((u) => u.id === currentUserId) || users[0] || {
-    id: '',
-    name: 'Invité',
-    role: 'bettor' as const,
-    avatar: '',
-    points: 0,
-    totalWon: 0,
-    totalBetsCount: 0,
-    winningBetsCount: 0,
-  };
+  const currentUser = users.find((u) => u.id === currentUserId);
 
   const currentMatchup = matchups.find((m) => m.status === 'live') || matchups[0] || null;
   const currentDay = currentMatchup?.dayNumber || 1;
