@@ -32,14 +32,36 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const roundsInfo = [
-    { number: 1, label: '1er Tour', count: 32, badge: '64 Prénoms', id: 'col-round-1' },
-    { number: 2, label: '2e Tour', count: 16, badge: '32 Prénoms', id: 'col-round-2' },
-    { number: 3, label: '8ème de Finale', count: 8, badge: '16 Prénoms', id: 'col-round-3' },
-    { number: 4, label: 'Quarts de Finale', count: 4, badge: '8 Prénoms', id: 'col-round-4' },
-    { number: 5, label: 'Demi-Finales', count: 2, badge: '4 Prénoms', id: 'col-round-5' },
-    { number: 6, label: 'Grande Finale', count: 1, badge: 'Champion', id: 'col-round-6' },
+  // Labels standards, du plus proche de la finale vers le premier tour.
+  // On les attribue en partant de la fin, pour que "Grande Finale" soit toujours
+  // le dernier tour existant, quel que soit le nombre de prénoms en jeu.
+  const STANDARD_LABELS_FROM_FINAL = [
+    'Grande Finale',
+    'Demi-Finales',
+    'Quarts de Finale',
+    '8ème de Finale',
+    '2e Tour',
+    '1er Tour',
   ];
+
+  const maxRound = matchups.length > 0 ? Math.max(...matchups.map((m) => m.round)) : 1;
+
+  const roundsInfo = Array.from({ length: maxRound }, (_, idx) => {
+    const roundNumber = idx + 1;
+    const matchesInRound = matchups.filter((m) => m.round === roundNumber).length;
+    const distanceFromFinal = maxRound - roundNumber; // 0 = finale, 1 = demies, ...
+    const label =
+      STANDARD_LABELS_FROM_FINAL[distanceFromFinal] ?? `Tour ${roundNumber}`;
+    const namesInPlay = matchesInRound * 2;
+
+    return {
+      number: roundNumber,
+      label,
+      count: matchesInRound,
+      badge: roundNumber === maxRound ? 'Champion' : `${namesInPlay} Prénoms`,
+      id: `col-round-${roundNumber}`,
+    };
+  });
 
   // Helper to scroll to a specific round column inside the horizontal bracket container
   const scrollToColumn = (colId: string) => {
@@ -69,9 +91,10 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
   });
 
   // Scope rounds to display in bracket tree based on bracketScope filter
+  // (relatif à maxRound, pour fonctionner avec n'importe quelle taille de tableau)
   const visibleRounds = roundsInfo.filter((r) => {
-    if (bracketScope === 'r16') return r.number >= 3; // From 8èmes onwards
-    if (bracketScope === 'finals') return r.number >= 4; // Quarts, Demis, Finale
+    if (bracketScope === 'r16') return r.number >= maxRound - 3; // 8èmes onwards (ou tout si moins de tours)
+    if (bracketScope === 'finals') return r.number >= maxRound - 2; // Quarts, Demis, Finale
     return true; // 'all'
   });
 
