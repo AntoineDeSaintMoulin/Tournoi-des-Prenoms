@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTournament } from '../context/TournamentContext';
+import { Avatar } from './Avatar';
 import { Trophy, Flame, Coins, Users, Sliders, Calendar, Sparkles, RefreshCw, Shield, ChevronDown, LogOut } from 'lucide-react';
 import { formatPoints } from '../utils/odds';
 
@@ -99,11 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => setShowUserDropdown(!showUserDropdown)}
               className="bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 flex items-center gap-2.5 transition-all text-sm font-medium"
             >
-              <img
-                src={currentUser.avatar}
-                alt={currentUser.name}
-                className="w-7 h-7 rounded-full object-cover border border-amber-400/50"
-              />
+              <Avatar avatar={currentUser.avatar} name={currentUser.name} className="w-7 h-7 border border-amber-400/50" />
               <div className="text-left hidden sm:block">
                 <div className="text-xs font-semibold text-slate-200 line-clamp-1">{currentUser.name}</div>
                 <div className="text-[10px] text-amber-400/80 font-medium capitalize">
@@ -118,7 +115,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-2 z-50 text-slate-200 text-xs">
                 <div className="px-3 py-2.5 border-b border-slate-800">
                   <div className="flex items-center gap-2.5">
-                    <img src={currentUser.avatar} alt={currentUser.name} className="w-8 h-8 rounded-full object-cover border border-amber-400/50" />
+                    <Avatar avatar={currentUser.avatar} name={currentUser.name} className="w-8 h-8 border border-amber-400/50" />
                     <div>
                       <div className="font-bold text-slate-200">{currentUser.name}</div>
                       <div className="text-amber-400 font-mono text-[11px]">{currentUser.points} PTS</div>
