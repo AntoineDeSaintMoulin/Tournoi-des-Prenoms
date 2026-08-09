@@ -15,8 +15,9 @@ interface TournamentContextType {
   loading: boolean;
 
   // Actions
-  switchUser: (userId: string) => void;
-  createUser: (name: string, role: 'parent' | 'bettor', avatar?: string) => Promise<void>;
+  createUser: (name: string, role: 'parent' | 'bettor', avatar?: string) => Promise<{ success: boolean; message?: string }>;
+  logout: () => void;
+  loginByName: (name: string) => { success: boolean; message?: string };
   placeBet: (matchupId: number, nameId: string, amount: number) => Promise<{ success: boolean; message: string }>;
   advanceToNextDay: (winnerIdOverride?: string) => Promise<void>;
   addComment: (matchupId: number, text: string, nameId?: string) => Promise<void>;
@@ -169,7 +170,25 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     localStorage.setItem(CURRENT_USER_KEY, userId);
   };
 
-  const createUser = async (name: string, role: 'parent' | 'bettor', avatar?: string) => {
+  const logout = () => {
+    setCurrentUserId(null);
+    localStorage.removeItem(CURRENT_USER_KEY);
+  };
+
+  const loginByName = (name: string): { success: boolean; message?: string } => {
+    const match = users.find((u) => u.name.trim().toLowerCase() === name.trim().toLowerCase());
+    if (!match) {
+      return { success: false, message: 'Aucun profil trouvé avec ce pseudo. Vérifie l\'orthographe ou crée un nouveau profil.' };
+    }
+    switchUser(match.id);
+    return { success: true };
+  };
+
+  const createUser = async (
+    name: string,
+    role: 'parent' | 'bettor',
+    avatar?: string
+  ): Promise<{ success: boolean; message?: string }> => {
     const { data, error } = await supabase
       .from('users')
       .insert({
@@ -181,9 +200,22 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       .select()
       .single();
 
-    if (!error && data) {
-      switchUser(data.id);
+    if (error) {
+      console.error('[createUser] Erreur Supabase :', error);
+      return {
+        success: false,
+        message: error.message.includes('duplicate')
+          ? 'Ce pseudo est déjà pris — choisis-en un légèrement différent (ex: ajoute ton nom de famille ou une initiale).'
+          : `Erreur : ${error.message}`,
+      };
     }
+
+    if (data) {
+      switchUser(data.id);
+      return { success: true };
+    }
+
+    return { success: false, message: 'Erreur inconnue lors de la création du profil.' };
   };
 
   const placeBet = async (
@@ -412,8 +444,9 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         bets,
         comments,
         loading,
-        switchUser,
         createUser,
+        logout,
+        loginByName,
         placeBet,
         advanceToNextDay,
         addComment,
