@@ -15,9 +15,9 @@ interface TournamentContextType {
   loading: boolean;
 
   // Actions
-  createUser: (name: string, role: 'parent' | 'bettor', avatar?: string) => Promise<{ success: boolean; message?: string }>;
+  createUser: (name: string, role: 'parent' | 'bettor', avatar: string | undefined, passwordHash: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
-  loginByName: (name: string) => { success: boolean; message?: string };
+  login: (name: string, passwordHash: string) => { success: boolean; message?: string };
   placeBet: (matchupId: number, nameId: string, amount: number) => Promise<{ success: boolean; message: string }>;
   advanceToNextDay: (winnerIdOverride?: string) => Promise<void>;
   addComment: (matchupId: number, text: string, nameId?: string) => Promise<void>;
@@ -113,6 +113,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [names, setNames] = useState<BabyName[]>([]);
   const [matchups, setMatchups] = useState<Matchup[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [rawUsers, setRawUsers] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>(
     () => localStorage.getItem(CURRENT_USER_KEY) || ''
   );
@@ -136,6 +137,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setNames(mappedNames);
     setMatchups(buildMatchups(matchupsRes.data || [], namesById));
     setUsers((usersRes.data || []).map(mapUser));
+    setRawUsers(usersRes.data || []);
     setBets((betsRes.data || []).map(mapBet));
     setComments((commentsRes.data || []).map(mapComment));
     setLoading(false);
@@ -175,10 +177,20 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     localStorage.removeItem(CURRENT_USER_KEY);
   };
 
-  const loginByName = (name: string): { success: boolean; message?: string } => {
+  const login = (name: string, passwordHash: string): { success: boolean; message?: string } => {
     const match = users.find((u) => u.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!match) {
       return { success: false, message: 'Aucun profil trouvé avec ce pseudo. Vérifie l\'orthographe ou crée un nouveau profil.' };
+    }
+    const rawMatch = rawUsers.find((u) => u.id === match.id);
+    if (!rawMatch?.password_hash) {
+      return {
+        success: false,
+        message: 'Ce profil a été créé avant la mise en place des mots de passe. Demande à un organisateur de le supprimer, puis recrée-le avec un mot de passe.',
+      };
+    }
+    if (rawMatch.password_hash !== passwordHash) {
+      return { success: false, message: 'Mot de passe incorrect.' };
     }
     switchUser(match.id);
     return { success: true };
@@ -187,7 +199,8 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const createUser = async (
     name: string,
     role: 'parent' | 'bettor',
-    avatar?: string
+    avatar: string | undefined,
+    passwordHash: string
   ): Promise<{ success: boolean; message?: string }> => {
     const { data, error } = await supabase
       .from('users')
@@ -196,6 +209,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         role,
         avatar: avatar || null,
         points: 1000,
+        password_hash: passwordHash,
       })
       .select()
       .single();
@@ -446,7 +460,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         loading,
         createUser,
         logout,
-        loginByName,
+        login,
         placeBet,
         advanceToNextDay,
         addComment,
