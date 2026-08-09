@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTournament } from '../context/TournamentContext';
+import { hashPassword } from '../utils/password';
 import { UserPlus, X, Sparkles, Lock } from 'lucide-react';
 
 interface CreateUserModalProps {
@@ -11,11 +12,17 @@ interface CreateUserModalProps {
 // Seules les personnes connaissant ce code peuvent devenir "Parent".
 const PARENT_SECRET_CODE = 'PRENOM2026';
 
-const AVATAR_OPTIONS = ['🦁', '🐼', '🦊', '🐨', '🐸', '🐧', '🦄', '🐙', '🐢', '🦉', '🐯', '🐰'];
+const AVATAR_OPTIONS = [
+  '🦁', '🐼', '🦊', '🐨', '🐸', '🐧', '🦄', '🐙', '🐢', '🦉', '🐯', '🐰',
+  '🐶', '🐱', '🐭', '🐹', '🐻', '🐷', '🐮', '🐵', '🦋', '🐝', '🐳', '🐬',
+  '🦈', '🦩', '🦫', '🦦', '🦥', '🐿️', '🦔', '🦖', '🐲', '🦅', '🦜', '🐴',
+];
 
 export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose }) => {
   const { createUser } = useTournament();
   const [name, setName] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [passwordConfirm, setPasswordConfirm] = useState<string>('');
   const [wantsParentAccess, setWantsParentAccess] = useState<boolean>(false);
   const [secretCode, setSecretCode] = useState<string>('');
   const [codeError, setCodeError] = useState<string>('');
@@ -30,6 +37,15 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
     if (!name.trim()) return;
     setCreateError('');
 
+    if (password.length < 4) {
+      setCreateError('Le mot de passe doit contenir au moins 4 caractères.');
+      return;
+    }
+    if (password !== passwordConfirm) {
+      setCreateError('Les deux mots de passe ne correspondent pas.');
+      return;
+    }
+
     let role: 'parent' | 'bettor' = 'bettor';
 
     if (wantsParentAccess) {
@@ -41,7 +57,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
     }
 
     setSubmitting(true);
-    const result = await createUser(name.trim(), role, selectedAvatar);
+    const passwordHash = await hashPassword(password);
+    const result = await createUser(name.trim(), role, selectedAvatar, passwordHash);
     setSubmitting(false);
 
     if (!result.success) {
@@ -50,6 +67,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
     }
 
     setName('');
+    setPassword('');
+    setPasswordConfirm('');
     setSecretCode('');
     onClose();
   };
@@ -92,6 +111,35 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
           </div>
 
           <div>
+            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+              Mot de passe
+            </label>
+            <input
+              type="password"
+              required
+              minLength={4}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Au moins 4 caractères..."
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-amber-400 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+              Confirme ton mot de passe
+            </label>
+            <input
+              type="password"
+              required
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              placeholder="Retape ton mot de passe..."
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-amber-400 focus:outline-none"
+            />
+          </div>
+
+          <div>
             <label className="flex items-center gap-2 text-xs font-bold text-slate-300 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -129,7 +177,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
             <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
               Choisir un Avatar
             </label>
-            <div className="flex gap-3 overflow-x-auto pb-2">
+            <div className="grid grid-cols-6 gap-2 max-h-40 overflow-y-auto pr-1">
               {AVATAR_OPTIONS.map((emoji) => (
                 <button
                   type="button"
