@@ -15,12 +15,26 @@ import { Matchup } from './types';
 import { Trophy, Shield, Heart } from 'lucide-react';
 
 function AppContent() {
-  const { loading, currentUser } = useTournament();
+  const { loading, currentUser, loginByName } = useTournament();
   const [activeTab, setActiveTab] = useState<'match' | 'bracket' | 'leaderboard' | 'catalog' | 'manageNames'>('match');
   const [showParentControls, setShowParentControls] = useState<boolean>(false);
   const [showBetsHistory, setShowBetsHistory] = useState<boolean>(false);
   const [showCreateUser, setShowCreateUser] = useState<boolean>(false);
   const [selectedMatchup, setSelectedMatchup] = useState<Matchup | null>(null);
+  const [returningName, setReturningName] = useState<string>('');
+  const [returningError, setReturningError] = useState<string>('');
+
+  const handleReturningLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!returningName.trim()) return;
+    const result = loginByName(returningName.trim());
+    if (!result.success) {
+      setReturningError(result.message || 'Erreur.');
+    } else {
+      setReturningError('');
+      setReturningName('');
+    }
+  };
 
   // Chargement initial des données Supabase
   if (loading) {
@@ -34,11 +48,11 @@ function AppContent() {
     );
   }
 
-  // Aucun profil sélectionné : on force la création d'un compte avant d'aller plus loin
+  // Aucun profil sélectionné : on force la création (ou la reconnexion) d'un compte
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-        <div className="text-center space-y-4 max-w-sm">
+        <div className="text-center space-y-5 max-w-sm w-full">
           <Trophy className="w-12 h-12 text-amber-400 mx-auto" />
           <h1 className="text-xl font-black text-white">Bienvenue au Tournoi des Prénoms !</h1>
           <p className="text-sm text-slate-400">
@@ -46,10 +60,36 @@ function AppContent() {
           </p>
           <button
             onClick={() => setShowCreateUser(true)}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm px-6 py-3 rounded-xl shadow-lg transition-all"
+            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm px-6 py-3 rounded-xl shadow-lg transition-all"
           >
             Créer mon profil
           </button>
+
+          <div className="flex items-center gap-3 text-slate-600 text-[10px] uppercase tracking-widest font-bold">
+            <div className="flex-1 h-px bg-slate-800" />
+            ou
+            <div className="flex-1 h-px bg-slate-800" />
+          </div>
+
+          <form onSubmit={handleReturningLogin} className="space-y-2">
+            <input
+              type="text"
+              value={returningName}
+              onChange={(e) => {
+                setReturningName(e.target.value);
+                setReturningError('');
+              }}
+              placeholder="J'ai déjà un profil : mon pseudo..."
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white text-center focus:border-amber-400 focus:outline-none"
+            />
+            {returningError && <p className="text-xs text-rose-400">{returningError}</p>}
+            <button
+              type="submit"
+              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm px-6 py-2.5 rounded-xl transition-all"
+            >
+              Retrouver mon profil
+            </button>
+          </form>
         </div>
         <CreateUserModal isOpen={showCreateUser} onClose={() => setShowCreateUser(false)} />
       </div>
