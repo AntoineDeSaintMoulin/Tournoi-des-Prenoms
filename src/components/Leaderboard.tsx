@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTournament } from '../context/TournamentContext';
 import { formatPoints } from '../utils/odds';
+import { Avatar } from './Avatar';
 import { Trophy, Medal, Award, UserPlus, TrendingUp, Coins, Target } from 'lucide-react';
 
 interface LeaderboardProps {
@@ -49,10 +50,11 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onOpenCreateUser }) =>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-slate-400 text-slate-950 text-xs font-black px-3 py-0.5 rounded-full shadow-md flex items-center gap-1">
               <Medal className="w-3.5 h-3.5" /> 2ÈME PLACE
             </div>
-            <img
-              src={top2.avatar}
-              alt={top2.name}
-              className="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-2 border-slate-400 shadow-md mt-2"
+            <Avatar
+              avatar={top2.avatar}
+              name={top2.name}
+              className="w-20 h-20 mx-auto mb-3 border-2 border-slate-400 shadow-md mt-2"
+              textClassName="text-4xl"
             />
             <h3 className="text-lg font-bold text-white line-clamp-1">{top2.name}</h3>
             <p className="text-xs text-slate-400 capitalize mb-3">
@@ -68,10 +70,11 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onOpenCreateUser }) =>
             <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-950 text-xs font-black px-4 py-1 rounded-full shadow-lg flex items-center gap-1.5 uppercase tracking-wider">
               <Trophy className="w-4 h-4 fill-slate-950" /> CHAMPION EN TÊTE
             </div>
-            <img
-              src={top1.avatar}
-              alt={top1.name}
-              className="w-24 h-24 rounded-full object-cover mx-auto mb-3 border-4 border-amber-400 shadow-xl mt-2"
+            <Avatar
+              avatar={top1.avatar}
+              name={top1.name}
+              className="w-24 h-24 mx-auto mb-3 border-4 border-amber-400 shadow-xl mt-2"
+              textClassName="text-5xl"
             />
             <h3 className="text-xl font-black text-white line-clamp-1">{top1.name}</h3>
             <p className="text-xs text-amber-300 font-semibold uppercase tracking-wider mb-4">
@@ -89,10 +92,11 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onOpenCreateUser }) =>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-700 text-white text-xs font-black px-3 py-0.5 rounded-full shadow-md flex items-center gap-1">
               <Award className="w-3.5 h-3.5" /> 3ÈM PLACE
             </div>
-            <img
-              src={top3.avatar}
-              alt={top3.name}
-              className="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-2 border-amber-700 shadow-md mt-2"
+            <Avatar
+              avatar={top3.avatar}
+              name={top3.name}
+              className="w-20 h-20 mx-auto mb-3 border-2 border-amber-700 shadow-md mt-2"
+              textClassName="text-4xl"
             />
             <h3 className="text-lg font-bold text-white line-clamp-1">{top3.name}</h3>
             <p className="text-xs text-slate-400 capitalize mb-3">
@@ -126,7 +130,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onOpenCreateUser }) =>
                   <span className="w-8 h-8 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center font-black font-mono text-sm text-amber-400">
                     #{idx + 1}
                   </span>
-                  <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover border border-slate-700" />
+                  <Avatar avatar={user.avatar} name={user.name} className="w-10 h-10 border border-slate-700" textClassName="text-xl" />
                   <div>
                     <div className="font-bold text-white text-sm flex items-center gap-2">
                       {user.name}
