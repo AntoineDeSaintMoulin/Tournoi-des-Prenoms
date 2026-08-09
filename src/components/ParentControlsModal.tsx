@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTournament } from '../context/TournamentContext';
-import { Shield, Play, Calendar, X } from 'lucide-react';
+import { Shield, Play, Calendar, X, RotateCcw } from 'lucide-react';
 
 interface ParentControlsModalProps {
   isOpen: boolean;
@@ -8,7 +8,23 @@ interface ParentControlsModalProps {
 }
 
 export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen, onClose }) => {
-  const { currentDay, currentMatchup, advanceToNextDay } = useTournament();
+  const { currentDay, currentMatchup, advanceToNextDay, resetTournament } = useTournament();
+
+  const handleReset = async () => {
+    const firstConfirm = confirm(
+      '⚠️ Ceci va supprimer TOUS les paris, matchs joués, et remettre tous les joueurs à 1000 points. Les 64 prénoms seront conservés. Continuer ?'
+    );
+    if (!firstConfirm) return;
+
+    const secondConfirm = confirm(
+      'Dernière confirmation : cette action est IRRÉVERSIBLE. Réinitialiser le tournoi maintenant ?'
+    );
+    if (!secondConfirm) return;
+
+    await resetTournament();
+    alert('Tournoi réinitialisé ! Va dans "Gérer les Prénoms" pour régénérer le tableau des matchs.');
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -85,6 +101,20 @@ export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen
               </div>
             </div>
           )}
+        </div>
+
+        {/* Zone danger */}
+        <div className="border-t border-slate-800 pt-4">
+          <button
+            onClick={handleReset}
+            className="w-full bg-rose-950/40 hover:bg-rose-950/60 border border-rose-800/50 text-rose-300 font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Réinitialiser tout le tournoi
+          </button>
+          <p className="text-[10px] text-slate-500 mt-2 text-center">
+            Supprime tous les paris et matchs joués. Les 64 prénoms sont conservés.
+          </p>
         </div>
       </div>
     </div>
