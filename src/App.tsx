@@ -117,7 +117,7 @@ function AppContent() {
           <Leaderboard onOpenCreateUser={() => setShowCreateUser(true)} />
         )}
         {activeTab === 'catalog' && <NamesCatalog />}
-        {activeTab === 'manageNames' && <ManageNames />}
+        {activeTab === 'manageNames' && currentUser.role === 'parent' && <ManageNames />}
       </main>
 
       {/* Footer */}
@@ -130,13 +130,17 @@ function AppContent() {
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
-            <button
-              onClick={() => setShowParentControls(true)}
-              className="hover:text-amber-300 transition-colors flex items-center gap-1"
-            >
-              <Shield className="w-3.5 h-3.5" /> Espace Parents
-            </button>
-            <span>•</span>
+            {currentUser.role === 'parent' && (
+              <>
+                <button
+                  onClick={() => setShowParentControls(true)}
+                  className="hover:text-amber-300 transition-colors flex items-center gap-1"
+                >
+                  <Shield className="w-3.5 h-3.5" /> Espace Parents
+                </button>
+                <span>•</span>
+              </>
+            )}
             <span className="flex items-center gap-1">
               Fait avec <Heart className="w-3 h-3 text-rose-500 fill-rose-500" /> pour les futurs parents
             </span>
