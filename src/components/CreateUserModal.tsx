@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { useTournament } from '../context/TournamentContext';
-import { UserPlus, X, Sparkles } from 'lucide-react';
+import { UserPlus, X, Sparkles, Lock } from 'lucide-react';
 
 interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// Code à changer par toi-même avant d'envoyer le lien aux joueurs.
+// Seules les personnes connaissant ce code peuvent devenir "Parent".
+const PARENT_SECRET_CODE = 'Basile1501';
 
 const AVATAR_OPTIONS = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
@@ -19,7 +23,9 @@ const AVATAR_OPTIONS = [
 export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose }) => {
   const { createUser } = useTournament();
   const [name, setName] = useState<string>('');
-  const [role, setRole] = useState<'parent' | 'bettor'>('bettor');
+  const [wantsParentAccess, setWantsParentAccess] = useState<boolean>(false);
+  const [secretCode, setSecretCode] = useState<string>('');
+  const [codeError, setCodeError] = useState<string>('');
   const [selectedAvatar, setSelectedAvatar] = useState<string>(AVATAR_OPTIONS[0]);
 
   if (!isOpen) return null;
@@ -27,8 +33,20 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    let role: 'parent' | 'bettor' = 'bettor';
+
+    if (wantsParentAccess) {
+      if (secretCode !== PARENT_SECRET_CODE) {
+        setCodeError('Code incorrect.');
+        return;
+      }
+      role = 'parent';
+    }
+
     createUser(name.trim(), role, selectedAvatar);
     setName('');
+    setSecretCode('');
     onClose();
   };
 
@@ -70,33 +88,37 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClos
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-              Rôle
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-300 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={wantsParentAccess}
+                onChange={(e) => {
+                  setWantsParentAccess(e.target.checked);
+                  setCodeError('');
+                }}
+                className="w-4 h-4 accent-amber-500"
+              />
+              Je suis un des organisateurs (parent)
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole('bettor')}
-                className={`p-3 rounded-xl border text-xs font-bold transition-all ${
-                  role === 'bettor'
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
-                    : 'bg-slate-950 border-slate-800 text-slate-400'
-                }`}
-              >
-                🎯 Parieur / Proche
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('parent')}
-                className={`p-3 rounded-xl border text-xs font-bold transition-all ${
-                  role === 'parent'
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
-                    : 'bg-slate-950 border-slate-800 text-slate-400'
-                }`}
-              >
-                👑 Co-Organisateur
-              </button>
-            </div>
+
+            {wantsParentAccess && (
+              <div className="mt-3">
+                <label className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                  <Lock className="w-3 h-3" /> Code organisateur
+                </label>
+                <input
+                  type="password"
+                  value={secretCode}
+                  onChange={(e) => {
+                    setSecretCode(e.target.value);
+                    setCodeError('');
+                  }}
+                  placeholder="Code secret..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-amber-400 focus:outline-none"
+                />
+                {codeError && <p className="text-[11px] text-rose-400 mt-1.5">{codeError}</p>}
+              </div>
+            )}
           </div>
 
           <div>
