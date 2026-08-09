@@ -212,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              Les 64 Prénoms
+              Les Prénoms
             </button>
             {currentUser.role === 'parent' && (
               <button
