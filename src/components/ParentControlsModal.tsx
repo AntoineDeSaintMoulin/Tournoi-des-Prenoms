@@ -8,7 +8,26 @@ interface ParentControlsModalProps {
 }
 
 export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen, onClose }) => {
-  const { currentDay, currentMatchup, advanceToNextDay, resetTournament } = useTournament();
+  const { currentDay, currentMatchup, advanceToNextDay, resetTournament, currentUser } = useTournament();
+
+  // Rempart final : même si ce modal est déclenché par erreur, un non-parent ne peut rien y faire.
+  if (!isOpen) return null;
+  if (!currentUser || currentUser.role !== 'parent') {
+    return (
+      <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center text-slate-100 space-y-3">
+          <Shield className="w-8 h-8 text-rose-400 mx-auto" />
+          <p className="text-sm font-bold">Accès réservé aux organisateurs.</p>
+          <button
+            onClick={onClose}
+            className="text-xs text-slate-400 hover:text-white underline"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleReset = async () => {
     const firstConfirm = confirm(
