@@ -119,7 +119,7 @@ useEffect(() => {
         <div className="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Top Match Metadata */}
+                {/* Top Match Metadata */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs uppercase px-3 py-1 rounded-full shadow-md flex items-center gap-1.5">
@@ -130,6 +130,7 @@ useEffect(() => {
               Tour {currentMatchup.round} / 6 — Élimination directe
             </span>
           </div>
+        </div>
 
         {/* VERSUS DUAL STAGE */}
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-3 sm:gap-6 items-center">
