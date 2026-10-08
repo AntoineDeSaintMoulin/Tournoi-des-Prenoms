@@ -23,7 +23,7 @@ export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen
   if (!isOpen) return null;
   if (!currentUser || currentUser.role !== 'parent') {
     return (
-      <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center text-slate-100 space-y-3">
           <Shield className="w-8 h-8 text-rose-400 mx-auto" />
           <p className="text-sm font-bold">Accès réservé aux organisateurs.</p>
