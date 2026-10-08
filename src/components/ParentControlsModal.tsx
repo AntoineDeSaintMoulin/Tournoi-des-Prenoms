@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTournament } from '../context/TournamentContext';
 import { Shield, Play, Calendar, X, RotateCcw } from 'lucide-react';
+
+
 
 interface ParentControlsModalProps {
   isOpen: boolean;
@@ -10,6 +12,13 @@ interface ParentControlsModalProps {
 export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen, onClose }) => {
   const { currentDay, currentMatchup, advanceToNextDay, resetTournament, currentUser } = useTournament();
 
+  const [selectedWinnerId, setSelectedWinnerId] = useState<string | null>(null);
+
+  // Repart de zéro à chaque nouveau match
+  useEffect(() => {
+    setSelectedWinnerId(null);
+  }, [currentMatchup?.id]);
+  
   // Rempart final : même si ce modal est déclenché par erreur, un non-parent ne peut rien y faire.
   if (!isOpen) return null;
   if (!currentUser || currentUser.role !== 'parent') {
@@ -29,6 +38,12 @@ export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen
     );
   }
 
+  const handleCloseDay = async () => {
+    if (!selectedWinnerId) return;
+    await advanceToNextDay(selectedWinnerId);
+    setSelectedWinnerId(null);
+  };
+  
   const handleReset = async () => {
     const firstConfirm = confirm(
       '⚠️ Ceci va supprimer TOUS les paris, matchs joués, et remettre tous les joueurs à 1000 points. Les 64 prénoms seront conservés. Continuer ?'
@@ -89,37 +104,40 @@ export const ParentControlsModal: React.FC<ParentControlsModalProps> = ({ isOpen
             </div>
           )}
 
-          {/* Auto: winner by most bets */}
-          <button
-            onClick={() => advanceToNextDay()}
-            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
-          >
-            <Play className="w-4 h-4 fill-slate-950" />
-            Clôturer le Jour #{currentDay} (vainqueur = le plus parié)
-          </button>
-
-          {/* Manual choice */}
+                   {/* Choix du vainqueur puis clôture */}
           {currentMatchup && currentMatchup.nameA && currentMatchup.nameB && (
             <div className="pt-2">
               <div className="text-[11px] font-bold text-slate-400 mb-2">
-                👑 Ou choisir directement le vainqueur officiel :
+                👑 1. Choisis le vainqueur officiel :
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => advanceToNextDay(currentMatchup.nameA!.id)}
-                  className="bg-slate-900 hover:bg-amber-500/20 hover:border-amber-400 border border-slate-800 text-slate-200 hover:text-amber-300 text-xs font-bold py-2 rounded-xl transition-all"
-                >
-                  {currentMatchup.nameA.name}
-                </button>
-                <button
-                  onClick={() => advanceToNextDay(currentMatchup.nameB!.id)}
-                  className="bg-slate-900 hover:bg-amber-500/20 hover:border-amber-400 border border-slate-800 text-slate-200 hover:text-amber-300 text-xs font-bold py-2 rounded-xl transition-all"
-                >
-                  {currentMatchup.nameB.name}
-                </button>
+                {[currentMatchup.nameA, currentMatchup.nameB].map((n) => (
+                  <button
+                    key={n.id}
+                    onClick={() => setSelectedWinnerId(n.id)}
+                    className={`border text-xs font-bold py-2 rounded-xl transition-all ${
+                      selectedWinnerId === n.id
+                        ? 'bg-amber-500 border-amber-400 text-slate-950'
+                        : 'bg-slate-900 border-slate-800 text-slate-200 hover:border-amber-400 hover:text-amber-300'
+                    }`}
+                  >
+                    {n.name}
+                  </button>
+                ))}
               </div>
             </div>
           )}
+
+          <button
+            onClick={handleCloseDay}
+            disabled={!selectedWinnerId}
+            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+          >
+            <Play className="w-4 h-4 fill-slate-950" />
+            {selectedWinnerId
+              ? `2. Clôturer le Jour #${currentDay}`
+              : `2. Clôturer le Jour #${currentDay} (choisis d'abord un vainqueur)`}
+          </button>
         </div>
 
         {/* Zone danger */}
