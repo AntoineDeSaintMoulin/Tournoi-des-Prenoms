@@ -45,7 +45,7 @@ export const WinnerTrophyModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-gradient-to-b from-amber-500/20 via-slate-900 to-slate-950 border-2 border-amber-400 rounded-3xl max-w-lg w-full p-8 shadow-2xl text-center text-slate-100 space-y-6 relative overflow-hidden animate-in fade-in zoom-in duration-300">
         <button
           onClick={handleClose}
