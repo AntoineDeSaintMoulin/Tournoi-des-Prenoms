@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; → import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Avatar } from './Avatar';
 import { useTournament } from '../context/TournamentContext';
 import { calculateOdds, calculatePotentialPayout, formatOdds, formatPoints } from '../utils/odds';
