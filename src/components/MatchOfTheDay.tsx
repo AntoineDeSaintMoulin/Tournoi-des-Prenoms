@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'; → import React, { useEffect, useState } from 'react';
+import { Avatar } from './Avatar';
 import { useTournament } from '../context/TournamentContext';
 import { calculateOdds, calculatePotentialPayout, formatOdds, formatPoints } from '../utils/odds';
 import { BabyName } from '../types';
@@ -38,6 +39,11 @@ export const MatchOfTheDay: React.FC = () => {
   const [betMessage, setBetMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [commentText, setCommentText] = useState<string>('');
 
+useEffect(() => {
+  setSelectedNameId(null);
+  setBetMessage(null);
+}, [currentMatchup?.id]);
+  
   if (!currentMatchup || !currentMatchup.nameA || !currentMatchup.nameB) {
     return (
       <div className="max-w-4xl mx-auto p-8 text-center bg-slate-900 border border-slate-800 rounded-3xl text-slate-300 my-8">
@@ -80,19 +86,19 @@ export const MatchOfTheDay: React.FC = () => {
     }
   };
 
-  const handleConfirmBet = (e: React.FormEvent) => {
+  const handleConfirmBet = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedNameId) {
       setBetMessage({ type: 'error', text: 'Veuillez sélectionner un prénom sur lequel parier.' });
       return;
     }
 
-    const res = placeBet(currentMatchup.id, selectedNameId, betAmount);
+    const res = await placeBet(currentMatchup.id, selectedNameId, betAmount);
     if (res.success) {
       setBetMessage({ type: 'success', text: res.message });
       setTimeout(() => setBetMessage(null), 5000);
     } else {
-      setBetMessage({ type: 'error', text: res.message });
+      setBetMessage({ type: 'error', text: res.message || 'Le pari n’a pas pu être enregistré.' });
     }
   };
 
@@ -106,9 +112,9 @@ export const MatchOfTheDay: React.FC = () => {
   const currentMatchupComments = comments.filter((c) => c.matchupId === currentMatchup.id);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-12">
+    <div className="max-w-6xl mx-auto space-y-5 sm:space-y-8 pb-12">
       {/* Banner Match Header */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
+      <div className="relative bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-8 shadow-2xl overflow-hidden">
         {/* Background glow effects */}
         <div className="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -120,7 +126,7 @@ export const MatchOfTheDay: React.FC = () => {
               <Flame className="w-4 h-4 fill-slate-950" />
               MATCH DU JOUR #{currentDay}
             </span>
-            <span className="text-slate-400 text-xs font-semibold">
+            <span className="hidden sm:inline text-slate-400 text-xs font-semibold">
               Tour {currentMatchup.round} / 6 — Élimination directe
             </span>
           </div>
@@ -139,11 +145,11 @@ export const MatchOfTheDay: React.FC = () => {
         </div>
 
         {/* VERSUS DUAL STAGE */}
-        <div className="grid grid-cols-1 lg:grid-cols-11 gap-6 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-11 gap-3 sm:gap-6 items-center">
           {/* CANDIDATE A */}
           <div
             onClick={() => setSelectedNameId(nameA.id)}
-            className={`cursor-pointer group relative bg-slate-900/90 hover:bg-slate-850 border-2 rounded-2xl p-6 transition-all duration-300 shadow-xl lg:col-span-5 ${
+            className={`cursor-pointer group relative bg-slate-900/90 hover:bg-slate-850 border-2 transition-all duration-300 lg:col-span-5 rounded-3xl p-4 sm:p-6 shadow-2xl overflow-hidden ${
               selectedNameId === nameA.id
                 ? 'border-amber-400 bg-amber-500/5 shadow-amber-500/10 ring-2 ring-amber-400/30'
                 : 'border-slate-800 hover:border-slate-700'
@@ -173,7 +179,7 @@ export const MatchOfTheDay: React.FC = () => {
 
             {/* Name Title & Audio button */}
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight group-hover:text-amber-300 transition-colors">
+              <h2 className="text-2xl sm:text-4xl break-words min-w-0 font-black text-white tracking-tight group-hover:text-amber-300 transition-colors">
                 {nameA.name}
               </h2>
               <button
@@ -202,7 +208,7 @@ export const MatchOfTheDay: React.FC = () => {
               </span>
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed italic mb-6">
+            <p className="text-xs text-slate-400 leading-relaxed italic mb-4 sm:mb-6">
               « {nameA.meaning} »
             </p>
 
@@ -244,7 +250,7 @@ export const MatchOfTheDay: React.FC = () => {
           {/* CANDIDATE B */}
           <div
             onClick={() => setSelectedNameId(nameB.id)}
-            className={`cursor-pointer group relative bg-slate-900/90 hover:bg-slate-850 border-2 rounded-2xl p-6 transition-all duration-300 shadow-xl lg:col-span-5 ${
+            className={`cursor-pointer group relative bg-slate-900/90 hover:bg-slate-850 border-2 transition-all duration-300 lg:col-span-5 rounded-3xl p-4 sm:p-6 shadow-2xl overflow-hidden ${
               selectedNameId === nameB.id
                 ? 'border-amber-400 bg-amber-500/5 shadow-amber-500/10 ring-2 ring-amber-400/30'
                 : 'border-slate-800 hover:border-slate-700'
@@ -274,7 +280,7 @@ export const MatchOfTheDay: React.FC = () => {
 
             {/* Name Title & Audio button */}
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight group-hover:text-amber-300 transition-colors">
+              <h2 className="text-2xl sm:text-4xl break-words min-w-0 font-black text-white tracking-tight group-hover:text-amber-300 transition-colors">
                 {nameB.name}
               </h2>
               <button
@@ -303,7 +309,7 @@ export const MatchOfTheDay: React.FC = () => {
               </span>
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed italic mb-6">
+            <p className="text-xs text-slate-400 leading-relaxed italic mb-4 sm:mb-6">
               « {nameB.meaning} »
             </p>
 
@@ -335,7 +341,7 @@ export const MatchOfTheDay: React.FC = () => {
 
         {/* Voting Ratio Visual Bar */}
         <div className="mt-8 pt-6 border-t border-slate-800">
-          <div className="flex justify-between items-center text-xs text-slate-400 mb-2 font-medium">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 text-xs text-slate-400 mb-2 font-medium">
             <span>
               {nameA.name} : <strong className="text-amber-300">{percentA}% des voix</strong> ({currentMatchup.countA} parieurs)
             </span>
@@ -358,7 +364,7 @@ export const MatchOfTheDay: React.FC = () => {
       </div>
 
       {/* BETTING SLIP FORM */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
             <Coins className="w-5 h-5" />
@@ -434,7 +440,7 @@ export const MatchOfTheDay: React.FC = () => {
             </div>
 
             {/* Custom Input */}
-            <div className="relative max-w-xs">
+            <div className="relative sm:max-w-xs">
               <input
                 type="number"
                 min="10"
@@ -493,7 +499,7 @@ export const MatchOfTheDay: React.FC = () => {
       </div>
 
       {/* COMMUNITY COMMENTS & DEBATE SECTION */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
             <MessageSquare className="w-5 h-5" />
@@ -532,7 +538,7 @@ export const MatchOfTheDay: React.FC = () => {
           ) : (
             currentMatchupComments.map((c) => (
               <div key={c.id} className="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex gap-3">
-                <img src={c.userAvatar} alt={c.userName} className="w-9 h-9 rounded-full object-cover border border-slate-700" />
+               <Avatar avatar={c.userAvatar} name={c.userName} className="w-9 h-9 border border-slate-700" />
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-bold text-slate-200">{c.userName}</span>
