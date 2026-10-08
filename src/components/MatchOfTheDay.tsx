@@ -131,19 +131,6 @@ useEffect(() => {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            {currentUser.role === 'parent' && (
-              <button
-                onClick={() => advanceToNextDay()}
-                className="text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl shadow-md transition-all flex items-center gap-1"
-              >
-                Clôturer le Match & Avancer
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        </div>
-
         {/* VERSUS DUAL STAGE */}
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-3 sm:gap-6 items-center">
           {/* CANDIDATE A */}
