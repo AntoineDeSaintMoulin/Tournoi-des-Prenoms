@@ -468,7 +468,7 @@ export const MatchOfTheDay: React.FC = () => {
           )}
 
           {/* Feedback messages */}
-          {betMessage && (
+          {betMessage && betMessage.text && (
             <div
               className={`p-4 rounded-xl text-xs font-medium ${
                 betMessage.type === 'success'
