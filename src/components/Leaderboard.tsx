@@ -43,7 +43,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onOpenCreateUser }) =>
       </div>
 
       {/* TOP 3 PODIUM */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end pt-4">
+      <div className="hidden md:grid md:grid-cols-3 gap-4 items-end pt-4">
         {/* 2ND PLACE */}
         {top2 && (
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center relative shadow-xl order-2 md:order-1">
