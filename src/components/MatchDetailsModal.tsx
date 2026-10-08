@@ -198,7 +198,7 @@ export const MatchDetailsModal: React.FC<MatchDetailsModalProps> = ({ matchup, o
               </button>
             </div>
 
-            {message && (
+            {message && message.text && (
               <div
                 className={`p-2.5 rounded-xl text-xs font-medium ${
                   message.type === 'success' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-rose-500/10 text-rose-300'
