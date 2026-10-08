@@ -311,7 +311,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     return {
       success: true,
-      message: `Pari confirmé ! ${amount} points placés sur ${chosenNameObj.name} à la cote de ${oddsAtBetTime.toFixed(2)}. Gain potentiel : ${potentialPayout} PTS.`,
+      message: `Pari validé : ${chosenNameObj.name}`,
     };
   };
 
