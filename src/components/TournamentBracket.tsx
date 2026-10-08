@@ -178,7 +178,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
         {viewMode === 'bracket' && (
           <div className="mt-6 pt-4 border-t border-[#2d2d2a] flex flex-wrap items-center justify-between gap-4 text-xs">
             {/* Scope zoom filters */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] uppercase tracking-widest text-[#8a8a80] font-mono">
                 Portée :
               </span>
