@@ -44,8 +44,6 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </div>
         <div className="flex items-center gap-2 text-[11px] font-semibold shrink-0">
-          <span className="text-amber-200">1000 PTS Offerts</span>
-          <span className="hidden md:inline">•</span>
           <span className="hidden md:inline text-slate-100">{names.length} Prénoms en compétition</span>
         </div>
       </div>
