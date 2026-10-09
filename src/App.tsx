@@ -151,7 +151,6 @@ function AppContent() {
           <div className="flex items-center gap-2">
             <Trophy className="w-4 h-4 text-amber-400" />
             <span className="font-bold text-slate-300">Tournoi des Prénoms de Bébé</span>
-            <span>— 63 Jours & 1000 Points offerts</span>
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
