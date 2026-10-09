@@ -67,7 +67,7 @@ export const NamesCatalog: React.FC = () => {
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-white">Catalogue des 64 Prénoms candidats</h2>
+            <h2 className="text-xl font-black text-white">Catalogue des {names.length} Prénoms candidats</h2>
             <p className="text-xs text-slate-400">
               Découvrez la signification, l'origine, la popularité et le statut dans le tournoi.
             </p>
