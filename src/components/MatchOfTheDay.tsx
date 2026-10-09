@@ -25,6 +25,7 @@ export const MatchOfTheDay: React.FC = () => {
   const {
     currentDay,
     currentMatchup,
+    matchups,
     currentUser,
     placeBet,
     advanceToNextDay,
@@ -127,7 +128,7 @@ useEffect(() => {
               MATCH DU JOUR #{currentDay}
             </span>
             <span className="hidden sm:inline text-slate-400 text-xs font-semibold">
-              Tour {currentMatchup.round} / 6 — Élimination directe
+              Tour {currentMatchup.round} / {Math.max(...matchups.map((m) => m.round))} — Élimination directe
             </span>
           </div>
         </div>
