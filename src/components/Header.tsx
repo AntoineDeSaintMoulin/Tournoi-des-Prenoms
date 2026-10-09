@@ -3,6 +3,7 @@ import { useTournament } from '../context/TournamentContext';
 import { Avatar } from './Avatar';
 import { Trophy, Flame, Coins, Users, Sliders, Calendar, Sparkles, RefreshCw, Shield, ChevronDown, LogOut } from 'lucide-react';
 import { formatPoints } from '../utils/odds';
+import { useBirthDate } from '../utils/useBirthDate';
 
 interface HeaderProps {
   onOpenParentControls: () => void;
@@ -19,11 +20,14 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
 }) => {
-  const { currentDay, currentMatchup, currentUser, bets, logout } = useTournament();
+  const { currentDay, currentMatchup, currentUser, bets, logout, matchups, names } = useTournament();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   const activeBetsCount = bets.filter((b) => b.userId === currentUser.id && b.status === 'active').length;
-  const totalDays = 63;
+  const totalDays = matchups.length || 63;
+  const { daysLeft } = useBirthDate();
+  const countdownLabel =
+    daysLeft === null ? null : daysLeft > 0 ? `J-${daysLeft}` : daysLeft === 0 ? 'Jour J !' : 'Bébé est né !';
   const progressPercent = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
   return (
@@ -33,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-3 animate-pulse">
           <span className="bg-black/30 text-amber-200 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <Flame className="w-3 h-3 text-amber-400" />
-            EN DIRECT - JOUR {currentDay} / 63
+            EN DIRECT - JOUR {currentDay} / {totalDays}
           </span>
           <span className="truncate hidden sm:inline">
             Match en cours : {currentMatchup?.nameA?.name || '???'} VS {currentMatchup?.nameB?.name || '???'} — Cotes en temps réel !
@@ -42,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2 text-[11px] font-semibold shrink-0">
           <span className="text-amber-200">1000 PTS Offerts</span>
           <span className="hidden md:inline">•</span>
-          <span className="hidden md:inline text-slate-100">64 Prénoms en compétition</span>
+          <span className="hidden md:inline text-slate-100">{names.length} Prénoms en compétition</span>
         </div>
       </div>
 
@@ -58,9 +62,11 @@ export const Header: React.FC<HeaderProps> = ({
               <h1 className="text-base sm:text-2xl leading-tight font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-amber-200">
                 Tournoi des Prénoms
               </h1>
-              <span className="hidden sm:inline-block">
-                63 Jours
-              </span>
+              {countdownLabel && (
+                <span className="hidden sm:inline-block bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">
+                  {countdownLabel}
+                </span>
+              )}
             </div>
             <p className="hidden sm:block text-xs text-slate-400 font-medium">
               Du 1er candidat au prénom gagnant de bébé
@@ -154,7 +160,10 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-2 text-slate-300 font-medium">
             <Calendar className="w-3.5 h-3.5 text-amber-400" />
             <span className="hidden sm:inline">Progression du Tournoi :</span>
-            <span className="text-amber-300 font-extrabold">Jour {currentDay} sur 63</span>
+            <span className="text-amber-300 font-extrabold">
+              Jour {currentDay} sur {totalDays}
+              {countdownLabel ? ` • ${countdownLabel} avant la naissance` : ''}
+            </span>
           </div>
 
           {/* Progress bar container */}
