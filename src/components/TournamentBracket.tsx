@@ -115,7 +115,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                   Arbre du Tournoi
                 </h2>
                 <span className="bg-[#c4a661]/20 border border-[#c4a661]/40 text-[#c4a661] text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full">
-                  63 Duels • 6 Tours
+                  {matchups.length} Duels • {maxRound} Tours
                 </span>
               </div>
               <p className="text-xs text-[#8a8a80] mt-1 font-sans">
@@ -190,7 +190,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                     : 'bg-[#0a0a0b] border-[#2d2d2a] text-[#8a8a80] hover:text-[#e0e0d6]'
                 }`}
               >
-                Tout l'Arbre (64)
+                Tout l'Arbre ({names.length})
               </button>
               <button
                 onClick={() => setBracketScope('r16')}
@@ -438,7 +438,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                       </p>
                     ) : (
                       <p className="text-xs text-[#8a8a80] font-mono">
-                        Déterminé au Jour 63
+                        Déterminé au Jour {matchups.length}
                       </p>
                     )}
                   </div>
