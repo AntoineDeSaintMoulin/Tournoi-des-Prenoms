@@ -137,7 +137,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onOpenCreateUser }) =>
                       {idx === 0 && <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-2 py-0.2 rounded-full">LEADER</span>}
                     </div>
                     <div className="text-xs text-slate-400">
-                      {user.totalBetsCount} paris plâces • {winRate}% de réusssite
+                      {user.totalBetsCount} {user.totalBetsCount > 1 ? 'paris placés' : 'pari placé'} • {winRate}% de réussite
                     </div>
                   </div>
                 </div>
