@@ -218,8 +218,8 @@ export const ManageNames: React.FC = () => {
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-white">Gestion des 64 Prénoms candidats</h2>
-              <p className="text-xs text-slate-400">Ajoute les prénoms un par un jusqu'à 64.</p>
+              <h2 className="text-xl font-black text-white">Gestion des Prénoms candidats</h2>
+              <p className="text-xs text-slate-400">Ajoute les prénoms un par un (maximum 64). Pour générer le tableau, vise 8, 16, 32 ou 64 prénoms.</p>
             </div>
           </div>
 
@@ -237,7 +237,7 @@ export const ManageNames: React.FC = () => {
         {names.length === 64 && (
           <div className="mt-4 flex items-center gap-2 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
-            Les 64 prénoms sont complets !
+            Maximum de 64 prénoms atteint !
           </div>
         )}
 
