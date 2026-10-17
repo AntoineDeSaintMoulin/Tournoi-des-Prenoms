@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Avatar } from './Avatar';
+import confetti from 'canvas-confetti';
 import { useTournament } from '../context/TournamentContext';
 import { calculateOdds, calculatePotentialPayout, formatOdds, formatPoints } from '../utils/odds';
 import { getBetPopularity } from '../utils/popularity';
@@ -99,6 +100,12 @@ useEffect(() => {
     const res = await placeBet(currentMatchup.id, selectedNameId, betAmount);
     if (res.success) {
       setBetMessage({ type: 'success', text: res.message });
+      confetti({
+        particleCount: 90,
+        spread: 75,
+        origin: { y: 0.75 },
+        colors: ['#ffc61a', '#38bdf8', '#4ade80', '#ffffff'],
+      });
       setTimeout(() => setBetMessage(null), 5000);
     } else {
       setBetMessage({ type: 'error', text: res.message || 'Le pari n’a pas pu être enregistré.' });
