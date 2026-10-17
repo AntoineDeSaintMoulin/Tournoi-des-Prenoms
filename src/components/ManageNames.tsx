@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Trash2, Sparkles, AlertCircle, CheckCircle2, GitBranch } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Sparkles, AlertCircle, CheckCircle2, GitBranch } from 'lucide-react';
 
 interface BabyNameRow {
   id: string;
@@ -31,7 +31,8 @@ export const ManageNames: React.FC = () => {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
+  const [editingId, setEditingId] = useState<string | null>(null);
+  
   const fetchNames = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -69,6 +70,32 @@ export const ManageNames: React.FC = () => {
 
     if (!form.name.trim()) {
       setError('Le prénom est obligatoire.');
+      return;
+    }
+    if (editingId) {
+      setSubmitting(true);
+      const { error: updateError } = await supabase
+        .from('baby_names')
+        .update({
+          name: form.name.trim(),
+          gender: form.gender,
+          origin: form.origin.trim() || null,
+          meaning: form.meaning.trim() || null,
+          style: form.style.trim() || null,
+        })
+        .eq('id', editingId);
+      setSubmitting(false);
+      if (updateError) {
+        setError(
+          updateError.message.includes('duplicate')
+            ? 'Ce prénom est déjà dans la liste.'
+            : updateError.message
+        );
+        return;
+      }
+      setEditingId(null);
+      setForm(emptyForm);
+      fetchNames();
       return;
     }
     if (names.length >= 64) {
@@ -119,7 +146,51 @@ export const ManageNames: React.FC = () => {
     }
   };
 
+  const handleStartEdit = (n: BabyNameRow) => {
+    setEditingId(n.id);
+    setError(null);
+    setForm({
+      name: n.name,
+      gender: n.gender,
+      origin: n.origin ?? '',
+      meaning: n.meaning ?? '',
+      style: n.style ?? '',
+      popularity: n.popularity ?? 50,
+      syllables: n.syllables ?? 2,
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setError(null);
+  };
+
+  const handleStartEdit = (n: BabyNameRow) => {
+    setEditingId(n.id);
+    setError(null);
+    setForm({
+      name: n.name,
+      gender: n.gender,
+      origin: n.origin ?? '',
+      meaning: n.meaning ?? '',
+      style: n.style ?? '',
+      popularity: n.popularity ?? 50,
+      syllables: n.syllables ?? 2,
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setError(null);
+  };
+
   const remaining = 64 - names.length;
+
+  
   const [generating, setGenerating] = useState(false);
   const [bracketExists, setBracketExists] = useState(false);
 
@@ -263,7 +334,9 @@ export const ManageNames: React.FC = () => {
           onSubmit={handleAddName}
           className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4"
         >
-          <h3 className="text-sm font-bold text-white">Ajouter un prénom ({remaining} restants)</h3>
+          <h3 className="text-sm font-bold text-white">
+            {editingId ? 'Modifier ce prénom' : `Ajouter un prénom (${remaining} restants)`}
+          </h3>
 
           {error && (
             <div className="flex items-center gap-2 text-xs text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3">
@@ -322,8 +395,18 @@ export const ManageNames: React.FC = () => {
             className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-50 text-slate-950 font-black text-sm py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            {submitting ? 'Ajout en cours...' : 'Ajouter ce prénom'}
+            {submitting ? 'Enregistrement...' : editingId ? 'Enregistrer les modifications' : 'Ajouter ce prénom'}
           </button>
+          {editingId && (
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm py-2.5 rounded-xl flex items-center justify-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Annuler la modification
+            </button>
+          )}
         </form>
       )}
 
@@ -351,13 +434,22 @@ export const ManageNames: React.FC = () => {
                     {n.gender === 'boy' ? 'Garçon' : n.gender === 'girl' ? 'Fille' : 'Mixte'}
                   </span>
                 </div>
-                <button
-                  onClick={() => handleDelete(n.id)}
-                  className="text-slate-500 hover:text-rose-400 transition-colors"
-                  title="Supprimer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleStartEdit(n)}
+                    className="text-slate-500 hover:text-amber-400 transition-colors"
+                    title="Modifier"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(n.id)}
+                    className="text-slate-500 hover:text-rose-400 transition-colors"
+                    title="Supprimer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
