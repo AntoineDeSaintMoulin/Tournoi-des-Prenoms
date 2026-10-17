@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useTournament } from '../context/TournamentContext';
 import { BabyName, Gender } from '../types';
 import { Sparkles, Search, Volume2, Heart, Trophy, Filter, CheckCircle2, XCircle } from 'lucide-react';
+import { getBetPopularity } from '../utils/popularity';
 
 export const NamesCatalog: React.FC = () => {
-  const { names, matchups, toggleParentFavorite } = useTournament();
+  const { names, matchups, bets, toggleParentFavorite } = useTournament();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedGender, setSelectedGender] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -187,7 +188,7 @@ export const NamesCatalog: React.FC = () => {
                     {item.style}
                   </span>
                   <span className="bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded border border-indigo-500/20">
-                    Pop. {item.popularity}/100
+                    Pop. {getBetPopularity(bets, item.id) ?? '—'}/100
                   </span>
                 </div>
 
