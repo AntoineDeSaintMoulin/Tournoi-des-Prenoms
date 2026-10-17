@@ -1,4 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+@theme {
+  /* Police ronde et joueuse */
+  --font-sans: 'Fredoka', ui-rounded, system-ui, sans-serif;
+
+  /* Fonds et textes : du bleu nuit (très foncé) au bleu clair */
+  --color-slate-50: #f4f8ff;
+  --color-slate-100: #e6efff;
+  --color-slate-200: #cfe0ff;
+  --color-slate-300: #a9c4f5;
+  --color-slate-400: #86a6e0;
+  --color-slate-500: #5f84c9;
+  --color-slate-600: #3f66b0;
+  --color-slate-700: #2b4f95;
+  --color-slate-800: #1f3b78;
+  --color-slate-850: #1a3369;
+  --color-slate-900: #142a5a;
+  --color-slate-950: #0c1c40;
+
+  /* Accent principal : jaune soleil / orange */
+  --color-amber-50: #fff9e0;
+  --color-amber-100: #fff0b3;
+  --color-amber-200: #ffe680;
+  --color-amber-300: #ffd84d;
+  --color-amber-400: #ffc61a;
+  --color-amber-500: #ffb000;
+  --color-amber-600: #ff8c00;
+  --color-amber-700: #e06d00;
+
+  /* Second accent : bleu ciel (remplace l'indigo violet) */
+  --color-indigo-300: #7dd3fc;
+  --color-indigo-400: #38bdf8;
+  --color-indigo-500: #0ea5e9;
+  --color-indigo-600: #0284c7;
+
+  /* Vert pelouse */
+  --color-emerald-300: #86efac;
+  --color-emerald-400: #4ade80;
+  --color-emerald-500: #22c55e;
+  --color-emerald-600: #16a34a;
+
+  /* Formes plus rondes, plus "jouet" */
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.4rem;
+  --radius-3xl: 2rem;
+}
+
+/* Boutons qui "rebondissent" */
+button:not(:disabled) {
+  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+button:not(:disabled):hover {
+  transform: translateY(-2px) scale(1.03);
+}
+button:not(:disabled):active {
+  transform: scale(0.95);
+}
 
 @media (max-width: 640px) {
   input, select, textarea { font-size: 16px !important; }
