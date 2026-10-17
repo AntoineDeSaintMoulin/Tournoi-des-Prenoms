@@ -476,7 +476,7 @@ useEffect(() => {
             <div
               className={`p-4 rounded-xl text-xs font-medium ${
                 betMessage.type === 'success'
-                  ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'
+                  ? 'animate-pop bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'
                   : 'bg-rose-500/10 border border-rose-500/30 text-rose-300'
               }`}
             >
