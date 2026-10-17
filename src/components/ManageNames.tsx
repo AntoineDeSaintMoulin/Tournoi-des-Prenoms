@@ -146,21 +146,6 @@ export const ManageNames: React.FC = () => {
     }
   };
 
-  const handleStartEdit = (n: BabyNameRow) => {
-    setEditingId(n.id);
-    setError(null);
-    setForm({
-      name: n.name,
-      gender: n.gender,
-      origin: n.origin ?? '',
-      meaning: n.meaning ?? '',
-      style: n.style ?? '',
-      popularity: n.popularity ?? 50,
-      syllables: n.syllables ?? 2,
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const handleCancelEdit = () => {
     setEditingId(null);
     setForm(emptyForm);
