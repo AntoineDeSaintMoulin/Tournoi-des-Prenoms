@@ -31,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
   const progressPercent = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 text-white shadow-2xl">
+        <header className="sky-header sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 text-white shadow-2xl">
       {/* Ticker tape bar */}
       <div className="bg-gradient-to-r from-amber-600 via-emerald-600 to-indigo-600 px-4 py-1.5 text-xs text-white font-medium hidden sm:flex items-center justify-between overflow-hidden">
         <div className="flex items-center gap-3 animate-pulse">
