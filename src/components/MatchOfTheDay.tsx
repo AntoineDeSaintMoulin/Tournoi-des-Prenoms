@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Avatar } from './Avatar';
 import { useTournament } from '../context/TournamentContext';
 import { calculateOdds, calculatePotentialPayout, formatOdds, formatPoints } from '../utils/odds';
+import { getBetPopularity } from '../utils/popularity';
 import { BabyName } from '../types';
 import {
   Swords,
@@ -26,6 +27,7 @@ export const MatchOfTheDay: React.FC = () => {
     currentDay,
     currentMatchup,
     matchups,
+    bets,
     currentUser,
     placeBet,
     advanceToNextDay,
@@ -193,7 +195,7 @@ useEffect(() => {
                 {nameA.style}
               </span>
               <span className="bg-indigo-500/10 text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-500/20">
-                Pop. {nameA.popularity}/100
+                Pop. {getBetPopularity(bets, nameA.id) ?? '—'}/100
               </span>
             </div>
 
@@ -294,7 +296,7 @@ useEffect(() => {
                 {nameB.style}
               </span>
               <span className="bg-indigo-500/10 text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-500/20">
-                Pop. {nameB.popularity}/100
+                Pop. {getBetPopularity(bets, nameB.id) ?? '—'}/100
               </span>
             </div>
 
