@@ -146,12 +146,6 @@ export const ManageNames: React.FC = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setForm(emptyForm);
-    setError(null);
-  };
-
   const handleStartEdit = (n: BabyNameRow) => {
     setEditingId(n.id);
     setError(null);
