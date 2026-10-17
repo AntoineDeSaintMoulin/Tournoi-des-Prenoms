@@ -62,3 +62,70 @@ button:not(:disabled):active {
 @media (max-width: 640px) {
   input, select, textarea { font-size: 16px !important; }
 }
+
+
+/* ---------- Petit rebond quand un pari est validé ---------- */
+@keyframes pop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  55%  { transform: scale(1.04); opacity: 1; }
+  75%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+.animate-pop {
+  animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---------- Ciel étoilé + nuages dans l'en-tête ---------- */
+.sky-header {
+  background-image: linear-gradient(180deg, #0c1c40 0%, #163a7a 100%);
+}
+/* le contenu de l'en-tête passe au-dessus du décor */
+.sky-header > * {
+  position: relative;
+  z-index: 1;
+}
+/* étoiles qui scintillent */
+.sky-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1.6px 1.6px at 12px 18px, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 58px 52px, #ffe680, transparent),
+    radial-gradient(1.8px 1.8px at 104px 26px, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 150px 70px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 188px 38px, #ffe680, transparent),
+    radial-gradient(1.2px 1.2px at 230px 84px, #fff, transparent),
+    radial-gradient(1.6px 1.6px at 262px 14px, #fff, transparent);
+  background-size: 280px 100px;
+  animation: twinkle 3.2s ease-in-out infinite alternate;
+}
+/* nuages qui défilent doucement */
+.sky-header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(28px 11px at 60px 30px, rgba(255,255,255,0.16) 98%, transparent),
+    radial-gradient(20px 10px at 42px 34px, rgba(255,255,255,0.16) 98%, transparent),
+    radial-gradient(22px 10px at 82px 34px, rgba(255,255,255,0.16) 98%, transparent),
+    radial-gradient(34px 12px at 340px 62px, rgba(255,255,255,0.12) 98%, transparent),
+    radial-gradient(24px 10px at 316px 66px, rgba(255,255,255,0.12) 98%, transparent),
+    radial-gradient(26px 11px at 366px 66px, rgba(255,255,255,0.12) 98%, transparent);
+  background-size: 560px 100px;
+  background-repeat: repeat-x;
+  animation: drift 70s linear infinite;
+}
+@keyframes twinkle {
+  from { opacity: 0.45; }
+  to   { opacity: 1; }
+}
+@keyframes drift {
+  from { background-position-x: 0; }
+  to   { background-position-x: 560px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sky-header::before, .sky-header::after, .animate-pop { animation: none; }
+}
