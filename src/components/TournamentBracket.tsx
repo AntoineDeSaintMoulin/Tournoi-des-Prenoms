@@ -101,24 +101,24 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-16">
       {/* Top Controls & Header Bar */}
-      <div className="bg-[#0f0f12] border border-[#2d2d2a] rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#c4a661]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-[#142a5a] border border-[#2b4f95] rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#ffc61a]/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 border border-[#c4a661] bg-[#1a1a1c] flex items-center justify-center rotate-45 shadow-xl shadow-[#c4a661]/10">
-              <Trophy className="w-6 h-6 text-[#c4a661] -rotate-45" />
+            <div className="w-12 h-12 border border-[#ffc61a] bg-[#1a3369] flex items-center justify-center rotate-45 shadow-xl shadow-[#ffc61a]/10">
+              <Trophy className="w-6 h-6 text-[#ffc61a] -rotate-45" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-serif tracking-wide text-[#f4f4f0] uppercase font-bold">
+                <h2 className="text-2xl font-serif tracking-wide text-[#ffffff] uppercase font-bold">
                   Arbre du Tournoi
                 </h2>
-                <span className="bg-[#c4a661]/20 border border-[#c4a661]/40 text-[#c4a661] text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full">
+                <span className="bg-[#ffc61a]/20 border border-[#ffc61a]/40 text-[#ffc61a] text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full">
                   {matchups.length} Duels • {maxRound} Tours
                 </span>
               </div>
-              <p className="text-xs text-[#8a8a80] mt-1 font-sans">
+              <p className="text-xs text-[#86a6e0] mt-1 font-sans">
                 Tableau complet à élimination directe. Cliquez sur un duel pour consulter les votes et placer vos paris.
               </p>
             </div>
@@ -128,18 +128,18 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
           <div className="flex flex-wrap items-center gap-3">
             {/* Search Input */}
             <div className="relative w-full sm:w-60">
-              <Search className="w-3.5 h-3.5 text-[#8a8a80] absolute left-3 top-2.5" />
+              <Search className="w-3.5 h-3.5 text-[#86a6e0] absolute left-3 top-2.5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Chercher un prénom..."
-                className="w-full bg-[#0a0a0b] border border-[#2d2d2a] rounded-xl pl-9 pr-3 py-2 text-xs text-[#e0e0d6] placeholder-[#55554e] focus:border-[#c4a661] outline-none transition-colors"
+                className="w-full bg-[#0c1c40] border border-[#2b4f95] rounded-xl pl-9 pr-3 py-2 text-xs text-[#e6efff] placeholder-[#5f84c9] focus:border-[#ffc61a] outline-none transition-colors"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-2 text-[10px] text-[#8a8a80] hover:text-white"
+                  className="absolute right-2.5 top-2 text-[10px] text-[#86a6e0] hover:text-white"
                 >
                   ✕
                 </button>
@@ -147,13 +147,13 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
             </div>
 
             {/* View Mode Switcher */}
-            <div className="flex items-center bg-[#0a0a0b] border border-[#2d2d2a] p-1 rounded-xl">
+            <div className="flex items-center bg-[#0c1c40] border border-[#2b4f95] p-1 rounded-xl">
               <button
                 onClick={() => setViewMode('bracket')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   viewMode === 'bracket'
-                    ? 'bg-[#c4a661] text-black shadow-lg shadow-[#c4a661]/20'
-                    : 'text-[#8a8a80] hover:text-[#e0e0d6]'
+                    ? 'bg-[#ffc61a] text-black shadow-lg shadow-[#ffc61a]/20'
+                    : 'text-[#86a6e0] hover:text-[#e6efff]'
                 }`}
               >
                 <GitBranch className="w-3.5 h-3.5" />
@@ -163,8 +163,8 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                 onClick={() => setViewMode('cards')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   viewMode === 'cards'
-                    ? 'bg-[#c4a661] text-black shadow-lg shadow-[#c4a661]/20'
-                    : 'text-[#8a8a80] hover:text-[#e0e0d6]'
+                    ? 'bg-[#ffc61a] text-black shadow-lg shadow-[#ffc61a]/20'
+                    : 'text-[#86a6e0] hover:text-[#e6efff]'
                 }`}
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
@@ -176,18 +176,18 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
 
         {/* Sub-bar for Bracket View options: Scope filter & Quick scroll jump */}
         {viewMode === 'bracket' && (
-          <div className="mt-6 pt-4 border-t border-[#2d2d2a] flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="mt-6 pt-4 border-t border-[#2b4f95] flex flex-wrap items-center justify-between gap-4 text-xs">
             {/* Scope zoom filters */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] uppercase tracking-widest text-[#8a8a80] font-mono">
+              <span className="text-[10px] uppercase tracking-widest text-[#86a6e0] font-mono">
                 Portée :
               </span>
               <button
                 onClick={() => setBracketScope('all')}
                 className={`px-3 py-1 rounded-lg border text-[11px] font-bold transition-all ${
                   bracketScope === 'all'
-                    ? 'bg-[#1a1a1c] border-[#c4a661] text-[#c4a661]'
-                    : 'bg-[#0a0a0b] border-[#2d2d2a] text-[#8a8a80] hover:text-[#e0e0d6]'
+                    ? 'bg-[#1a3369] border-[#ffc61a] text-[#ffc61a]'
+                    : 'bg-[#0c1c40] border-[#2b4f95] text-[#86a6e0] hover:text-[#e6efff]'
                 }`}
               >
                 Tout l'Arbre ({names.length})
@@ -196,8 +196,8 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                 onClick={() => setBracketScope('r16')}
                 className={`px-3 py-1 rounded-lg border text-[11px] font-bold transition-all ${
                   bracketScope === 'r16'
-                    ? 'bg-[#1a1a1c] border-[#c4a661] text-[#c4a661]'
-                    : 'bg-[#0a0a0b] border-[#2d2d2a] text-[#8a8a80] hover:text-[#e0e0d6]'
+                    ? 'bg-[#1a3369] border-[#ffc61a] text-[#ffc61a]'
+                    : 'bg-[#0c1c40] border-[#2b4f95] text-[#86a6e0] hover:text-[#e6efff]'
                 }`}
               >
                 8èmes de Finale (16)
@@ -206,8 +206,8 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                 onClick={() => setBracketScope('finals')}
                 className={`px-3 py-1 rounded-lg border text-[11px] font-bold transition-all ${
                   bracketScope === 'finals'
-                    ? 'bg-[#1a1a1c] border-[#c4a661] text-[#c4a661]'
-                    : 'bg-[#0a0a0b] border-[#2d2d2a] text-[#8a8a80] hover:text-[#e0e0d6]'
+                    ? 'bg-[#1a3369] border-[#ffc61a] text-[#ffc61a]'
+                    : 'bg-[#0c1c40] border-[#2b4f95] text-[#86a6e0] hover:text-[#e6efff]'
                 }`}
               >
                 Quarts / Demis / Finale (8)
@@ -216,14 +216,14 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
 
             {/* Quick scroll column jumps */}
             <div className="flex items-center gap-1.5 overflow-x-auto py-1">
-              <span className="text-[10px] uppercase tracking-widest text-[#8a8a80] font-mono mr-1">
+              <span className="text-[10px] uppercase tracking-widest text-[#86a6e0] font-mono mr-1">
                 Aller à :
               </span>
               {roundsInfo.map((r) => (
                 <button
                   key={r.number}
                   onClick={() => scrollToColumn(r.id)}
-                  className="px-2.5 py-1 bg-[#1a1a1c] hover:bg-[#2d2d2a] border border-[#2d2d2a] hover:border-[#c4a661] text-[10px] uppercase tracking-wider text-[#e0e0d6] rounded-md transition-all whitespace-nowrap"
+                  className="px-2.5 py-1 bg-[#1a3369] hover:bg-[#2b4f95] border border-[#2b4f95] hover:border-[#ffc61a] text-[10px] uppercase tracking-wider text-[#e6efff] rounded-md transition-all whitespace-nowrap"
                 >
                   {r.label}
                 </button>
@@ -237,10 +237,10 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
       {/* VIEW MODE 1: VISUAL BRACKET TREE / TABLEAU INTERACTIF      */}
       {/* ========================================================= */}
       {viewMode === 'bracket' && (
-        <div className="bg-[#0f0f12] border border-[#2d2d2a] rounded-3xl p-4 sm:p-6 shadow-2xl overflow-hidden relative">
-          <div className="flex items-center justify-between text-[11px] text-[#8a8a80] uppercase tracking-widest pb-3 mb-4 border-b border-[#2d2d2a] font-mono">
+        <div className="bg-[#142a5a] border border-[#2b4f95] rounded-3xl p-4 sm:p-6 shadow-2xl overflow-hidden relative">
+          <div className="flex items-center justify-between text-[11px] text-[#86a6e0] uppercase tracking-widest pb-3 mb-4 border-b border-[#2b4f95] font-mono">
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#c4a661]" />
+              <Sparkles className="w-3.5 h-3.5 text-[#ffc61a]" />
               Faites défiler horizontalement pour parcourir le tableau complet
             </span>
             <span>{visibleRounds.length} Tours affichés</span>
@@ -262,14 +262,14 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                     className="w-64 sm:w-72 flex flex-col shrink-0"
                   >
                     {/* Column Header */}
-                    <div className="mb-6 p-3 bg-[#161618] border-b-2 border-[#c4a661] text-center rounded-t-xl shadow-md">
-                      <span className="text-[10px] uppercase tracking-widest text-[#c4a661] font-mono font-bold block">
+                    <div className="mb-6 p-3 bg-[#142a5a] border-b-2 border-[#ffc61a] text-center rounded-t-xl shadow-md">
+                      <span className="text-[10px] uppercase tracking-widest text-[#ffc61a] font-mono font-bold block">
                         {roundObj.badge}
                       </span>
-                      <h3 className="text-sm font-serif font-bold text-[#f4f4f0] uppercase tracking-wider">
+                      <h3 className="text-sm font-serif font-bold text-[#ffffff] uppercase tracking-wider">
                         {roundObj.label}
                       </h3>
-                      <p className="text-[10px] text-[#8a8a80] font-mono mt-0.5">
+                      <p className="text-[10px] text-[#86a6e0] font-mono mt-0.5">
                         {roundMatches.filter((m) => m.status === 'completed').length} / {roundObj.count} terminés
                       </p>
                     </div>
@@ -299,19 +299,19 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                             {/* Matchup Box */}
                             <div
                               onClick={() => onSelectMatchup(matchup)}
-                              className={`group cursor-pointer bg-[#161618] border rounded-2xl p-3 shadow-xl transition-all duration-300 hover:scale-[1.02] hover:z-20 relative overflow-hidden ${
+                              className={`group cursor-pointer bg-[#142a5a] border rounded-2xl p-3 shadow-xl transition-all duration-300 hover:scale-[1.02] hover:z-20 relative overflow-hidden ${
                                 isSearchMatch
-                                  ? 'ring-2 ring-[#c4a661] shadow-[0_0_20px_rgba(196,166,97,0.4)] border-[#c4a661]'
+                                  ? 'ring-2 ring-[#ffc61a] shadow-[0_0_20px_rgba(196,166,97,0.4)] border-[#ffc61a]'
                                   : isLive
                                   ? 'border-emerald-500/80 bg-emerald-950/20 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500/40'
                                   : isCompleted
-                                  ? 'border-[#2d2d2a] hover:border-[#c4a661]/60'
-                                  : 'border-[#2d2d2a]/80 opacity-85 hover:opacity-100 hover:border-[#2d2d2a]'
+                                  ? 'border-[#2b4f95] hover:border-[#ffc61a]/60'
+                                  : 'border-[#2b4f95]/80 opacity-85 hover:opacity-100 hover:border-[#2b4f95]'
                               }`}
                             >
                               {/* Header Metadata */}
-                              <div className="flex items-center justify-between text-[10px] font-mono mb-2 pb-1.5 border-b border-[#2d2d2a] text-[#8a8a80]">
-                                <span className="flex items-center gap-1 font-bold text-[#c4a661]">
+                              <div className="flex items-center justify-between text-[10px] font-mono mb-2 pb-1.5 border-b border-[#2b4f95] text-[#86a6e0]">
+                                <span className="flex items-center gap-1 font-bold text-[#ffc61a]">
                                   <Calendar className="w-3 h-3" />
                                   J#{matchup.dayNumber}
                                 </span>
@@ -321,9 +321,9 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                                     EN DIRECT
                                   </span>
                                 ) : isCompleted ? (
-                                  <span className="text-[#8a8a80] font-semibold uppercase">Terminé</span>
+                                  <span className="text-[#86a6e0] font-semibold uppercase">Terminé</span>
                                 ) : (
-                                  <span className="text-[#55554e] font-semibold uppercase">À venir</span>
+                                  <span className="text-[#5f84c9] font-semibold uppercase">À venir</span>
                                 )}
                               </div>
 
@@ -331,17 +331,17 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                               <div
                                 className={`p-2 rounded-xl border mb-1.5 flex items-center justify-between transition-all ${
                                   matchup.winnerId === matchup.nameA?.id
-                                    ? 'bg-[#c4a661]/15 border-[#c4a661] text-[#f4f4f0] font-bold shadow-sm'
-                                    : 'bg-[#0a0a0b] border-[#2d2d2a] text-[#e0e0d6]'
+                                    ? 'bg-[#ffc61a]/15 border-[#ffc61a] text-[#ffffff] font-bold shadow-sm'
+                                    : 'bg-[#0c1c40] border-[#2b4f95] text-[#e6efff]'
                                 }`}
                               >
                                 <div className="flex items-center gap-2 truncate">
                                   {matchup.nameA ? (
                                     <>
-                                      <span className="text-[9px] bg-[#1a1a1c] text-[#c4a661] font-mono px-1.5 py-0.5 rounded font-bold border border-[#2d2d2a]">
+                                      <span className="text-[9px] bg-[#1a3369] text-[#ffc61a] font-mono px-1.5 py-0.5 rounded font-bold border border-[#2b4f95]">
                                         #{matchup.nameA.seed}
                                       </span>
-                                      <span className="text-xs font-serif font-bold truncate group-hover:text-[#c4a661] transition-colors">
+                                      <span className="text-xs font-serif font-bold truncate group-hover:text-[#ffc61a] transition-colors">
                                         {matchup.nameA.name}
                                       </span>
                                       {matchup.nameA.parentFavorite && (
@@ -349,16 +349,16 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                                       )}
                                     </>
                                   ) : (
-                                    <span className="text-[11px] text-[#55554e] italic">En attente...</span>
+                                    <span className="text-[11px] text-[#5f84c9] italic">En attente...</span>
                                   )}
                                 </div>
 
                                 <div className="flex items-center gap-1.5 shrink-0 font-mono text-[11px]">
                                   {matchup.winnerId === matchup.nameA?.id && (
-                                    <Crown className="w-3.5 h-3.5 text-[#c4a661] fill-[#c4a661]" />
+                                    <Crown className="w-3.5 h-3.5 text-[#ffc61a] fill-[#ffc61a]" />
                                   )}
                                   {matchup.nameA && (
-                                    <span className="text-[10px] font-bold text-[#c4a661] bg-[#1a1a1c] px-1.5 py-0.5 rounded border border-[#2d2d2a]">
+                                    <span className="text-[10px] font-bold text-[#ffc61a] bg-[#1a3369] px-1.5 py-0.5 rounded border border-[#2b4f95]">
                                       {formatOdds(oddsA)}
                                     </span>
                                   )}
@@ -369,17 +369,17 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                               <div
                                 className={`p-2 rounded-xl border flex items-center justify-between transition-all ${
                                   matchup.winnerId === matchup.nameB?.id
-                                    ? 'bg-[#c4a661]/15 border-[#c4a661] text-[#f4f4f0] font-bold shadow-sm'
-                                    : 'bg-[#0a0a0b] border-[#2d2d2a] text-[#e0e0d6]'
+                                    ? 'bg-[#ffc61a]/15 border-[#ffc61a] text-[#ffffff] font-bold shadow-sm'
+                                    : 'bg-[#0c1c40] border-[#2b4f95] text-[#e6efff]'
                                 }`}
                               >
                                 <div className="flex items-center gap-2 truncate">
                                   {matchup.nameB ? (
                                     <>
-                                      <span className="text-[9px] bg-[#1a1a1c] text-[#c4a661] font-mono px-1.5 py-0.5 rounded font-bold border border-[#2d2d2a]">
+                                      <span className="text-[9px] bg-[#1a3369] text-[#ffc61a] font-mono px-1.5 py-0.5 rounded font-bold border border-[#2b4f95]">
                                         #{matchup.nameB.seed}
                                       </span>
-                                      <span className="text-xs font-serif font-bold truncate group-hover:text-[#c4a661] transition-colors">
+                                      <span className="text-xs font-serif font-bold truncate group-hover:text-[#ffc61a] transition-colors">
                                         {matchup.nameB.name}
                                       </span>
                                       {matchup.nameB.parentFavorite && (
@@ -387,16 +387,16 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                                       )}
                                     </>
                                   ) : (
-                                    <span className="text-[11px] text-[#55554e] italic">En attente...</span>
+                                    <span className="text-[11px] text-[#5f84c9] italic">En attente...</span>
                                   )}
                                 </div>
 
                                 <div className="flex items-center gap-1.5 shrink-0 font-mono text-[11px]">
                                   {matchup.winnerId === matchup.nameB?.id && (
-                                    <Crown className="w-3.5 h-3.5 text-[#c4a661] fill-[#c4a661]" />
+                                    <Crown className="w-3.5 h-3.5 text-[#ffc61a] fill-[#ffc61a]" />
                                   )}
                                   {matchup.nameB && (
-                                    <span className="text-[10px] font-bold text-[#c4a661] bg-[#1a1a1c] px-1.5 py-0.5 rounded border border-[#2d2d2a]">
+                                    <span className="text-[10px] font-bold text-[#ffc61a] bg-[#1a3369] px-1.5 py-0.5 rounded border border-[#2b4f95]">
                                       {formatOdds(oddsB)}
                                     </span>
                                   )}
@@ -406,7 +406,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
 
                             {/* Branch Connector lines linking pairs to next round */}
                             {roundObj.number < 6 && (
-                              <div className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-px bg-[#2d2d2a] pointer-events-none hidden sm:block" />
+                              <div className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-px bg-[#2b4f95] pointer-events-none hidden sm:block" />
                             )}
                           </div>
                         );
@@ -418,40 +418,40 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
 
               {/* Final Winner Champion Trophy Node */}
               <div className="w-64 sm:w-72 flex flex-col shrink-0 justify-center">
-                <div className="bg-gradient-to-b from-[#1a1a1c] via-[#0f0f12] to-[#0a0a0b] border-2 border-[#c4a661] rounded-3xl p-6 text-center shadow-2xl space-y-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#c4a661]/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="bg-gradient-to-b from-[#1a3369] via-[#142a5a] to-[#0c1c40] border-2 border-[#ffc61a] rounded-3xl p-6 text-center shadow-2xl space-y-4 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#ffc61a]/10 rounded-full blur-2xl pointer-events-none" />
 
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#c4a661] via-amber-500 to-amber-700 flex items-center justify-center text-black mx-auto shadow-xl shadow-[#c4a661]/30 border border-[#c4a661]">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ffc61a] via-amber-500 to-amber-700 flex items-center justify-center text-black mx-auto shadow-xl shadow-[#ffc61a]/30 border border-[#ffc61a]">
                     <Trophy className="w-9 h-9" />
                   </div>
 
                   <div>
-                    <span className="text-[9px] uppercase tracking-widest bg-[#c4a661]/20 text-[#c4a661] border border-[#c4a661]/30 font-bold px-3 py-1 rounded-full font-mono">
+                    <span className="text-[9px] uppercase tracking-widest bg-[#ffc61a]/20 text-[#ffc61a] border border-[#ffc61a]/30 font-bold px-3 py-1 rounded-full font-mono">
                       VAINQUEUR FINAL
                     </span>
-                    <h3 className="text-2xl font-serif font-black text-[#f4f4f0] uppercase tracking-wide mt-3 mb-1">
+                    <h3 className="text-2xl font-serif font-black text-[#ffffff] uppercase tracking-wide mt-3 mb-1">
                       {winnerObj ? winnerObj.name : '???'}
                     </h3>
                     {winnerObj ? (
-                      <p className="text-xs text-[#c4a661] font-sans italic">
+                      <p className="text-xs text-[#ffc61a] font-sans italic">
                         « {winnerObj.meaning} »
                       </p>
                     ) : (
-                      <p className="text-xs text-[#8a8a80] font-mono">
+                      <p className="text-xs text-[#86a6e0] font-mono">
                         Déterminé au Jour {matchups.length}
                       </p>
                     )}
                   </div>
 
                   {winnerObj && (
-                    <div className="p-3 bg-[#0a0a0b] border border-[#2d2d2a] rounded-xl text-[10px] text-[#8a8a80] text-left space-y-1">
+                    <div className="p-3 bg-[#0c1c40] border border-[#2b4f95] rounded-xl text-[10px] text-[#86a6e0] text-left space-y-1">
                       <div className="flex justify-between">
                         <span>Origine :</span>
                         <span className="text-white font-bold">{winnerObj.origin}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Style :</span>
-                        <span className="text-[#c4a661] font-bold">{winnerObj.style}</span>
+                        <span className="text-[#ffc61a] font-bold">{winnerObj.style}</span>
                       </div>
                     </div>
                   )}
@@ -480,8 +480,8 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                   onClick={() => setSelectedRoundTab(r.number)}
                   className={`p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden ${
                     isActive
-                      ? 'bg-[#c4a661] text-black border-[#c4a661] font-bold shadow-xl shadow-[#c4a661]/20'
-                      : 'bg-[#0f0f12] hover:bg-[#161618] border-[#2d2d2a] text-[#e0e0d6]'
+                      ? 'bg-[#ffc61a] text-black border-[#ffc61a] font-bold shadow-xl shadow-[#ffc61a]/20'
+                      : 'bg-[#142a5a] hover:bg-[#142a5a] border-[#2b4f95] text-[#e6efff]'
                   }`}
                 >
                   {liveMatch && !isActive && (
@@ -509,18 +509,18 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                 <div
                   key={matchup.id}
                   onClick={() => onSelectMatchup(matchup)}
-                  className={`group cursor-pointer bg-[#0f0f12] border rounded-2xl p-4 transition-all duration-300 hover:shadow-2xl relative overflow-hidden ${
+                  className={`group cursor-pointer bg-[#142a5a] border rounded-2xl p-4 transition-all duration-300 hover:shadow-2xl relative overflow-hidden ${
                     isLive
                       ? 'border-emerald-500/80 bg-emerald-950/20 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500/40'
                       : isCompleted
-                      ? 'border-[#2d2d2a] hover:border-[#c4a661]/60'
-                      : 'border-[#2d2d2a] opacity-80 hover:opacity-100'
+                      ? 'border-[#2b4f95] hover:border-[#ffc61a]/60'
+                      : 'border-[#2b4f95] opacity-80 hover:opacity-100'
                   }`}
                 >
                   {/* Match Header Tag */}
-                  <div className="flex items-center justify-between text-xs mb-3 pb-2 border-b border-[#2d2d2a]">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#c4a661] flex items-center gap-1 font-mono">
-                      <Calendar className="w-3.5 h-3.5 text-[#c4a661]" />
+                  <div className="flex items-center justify-between text-xs mb-3 pb-2 border-b border-[#2b4f95]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#ffc61a] flex items-center gap-1 font-mono">
+                      <Calendar className="w-3.5 h-3.5 text-[#ffc61a]" />
                       Jour #{matchup.dayNumber}
                     </span>
 
@@ -530,9 +530,9 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                         EN DIRECT
                       </span>
                     ) : isCompleted ? (
-                      <span className="text-[10px] text-[#8a8a80] font-semibold uppercase font-mono">Terminé</span>
+                      <span className="text-[10px] text-[#86a6e0] font-semibold uppercase font-mono">Terminé</span>
                     ) : (
-                      <span className="text-[10px] text-[#55554e] font-semibold uppercase font-mono">À venir</span>
+                      <span className="text-[10px] text-[#5f84c9] font-semibold uppercase font-mono">À venir</span>
                     )}
                   </div>
 
@@ -540,17 +540,17 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                   <div
                     className={`p-2.5 rounded-xl border mb-2 flex items-center justify-between transition-all ${
                       matchup.winnerId === matchup.nameA?.id
-                        ? 'bg-[#c4a661]/15 border-[#c4a661] text-[#f4f4f0] font-bold'
-                        : 'bg-[#0a0a0b] border-[#2d2d2a] text-[#e0e0d6]'
+                        ? 'bg-[#ffc61a]/15 border-[#ffc61a] text-[#ffffff] font-bold'
+                        : 'bg-[#0c1c40] border-[#2b4f95] text-[#e6efff]'
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate">
                       {matchup.nameA ? (
                         <>
-                          <span className="text-[10px] bg-[#161618] text-[#c4a661] font-mono px-1.5 py-0.5 rounded font-bold border border-[#2d2d2a]">
+                          <span className="text-[10px] bg-[#142a5a] text-[#ffc61a] font-mono px-1.5 py-0.5 rounded font-bold border border-[#2b4f95]">
                             #{matchup.nameA.seed}
                           </span>
-                          <span className="text-sm font-serif font-bold truncate group-hover:text-[#c4a661] transition-colors">
+                          <span className="text-sm font-serif font-bold truncate group-hover:text-[#ffc61a] transition-colors">
                             {matchup.nameA.name}
                           </span>
                           {matchup.nameA.parentFavorite && (
@@ -558,16 +558,16 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                           )}
                         </>
                       ) : (
-                        <span className="text-xs text-[#55554e] italic">Vainqueur match précédent...</span>
+                        <span className="text-xs text-[#5f84c9] italic">Vainqueur match précédent...</span>
                       )}
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
                       {matchup.winnerId === matchup.nameA?.id && (
-                        <Crown className="w-4 h-4 text-[#c4a661] fill-[#c4a661]" />
+                        <Crown className="w-4 h-4 text-[#ffc61a] fill-[#ffc61a]" />
                       )}
                       {matchup.nameA && (
-                        <span className="text-xs font-mono font-bold text-[#c4a661] bg-[#161618] px-2 py-0.5 rounded border border-[#2d2d2a]">
+                        <span className="text-xs font-mono font-bold text-[#ffc61a] bg-[#142a5a] px-2 py-0.5 rounded border border-[#2b4f95]">
                           {formatOdds(oddsA)}
                         </span>
                       )}
@@ -578,17 +578,17 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                   <div
                     className={`p-2.5 rounded-xl border flex items-center justify-between transition-all ${
                       matchup.winnerId === matchup.nameB?.id
-                        ? 'bg-[#c4a661]/15 border-[#c4a661] text-[#f4f4f0] font-bold'
-                        : 'bg-[#0a0a0b] border-[#2d2d2a] text-[#e0e0d6]'
+                        ? 'bg-[#ffc61a]/15 border-[#ffc61a] text-[#ffffff] font-bold'
+                        : 'bg-[#0c1c40] border-[#2b4f95] text-[#e6efff]'
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate">
                       {matchup.nameB ? (
                         <>
-                          <span className="text-[10px] bg-[#161618] text-[#c4a661] font-mono px-1.5 py-0.5 rounded font-bold border border-[#2d2d2a]">
+                          <span className="text-[10px] bg-[#142a5a] text-[#ffc61a] font-mono px-1.5 py-0.5 rounded font-bold border border-[#2b4f95]">
                             #{matchup.nameB.seed}
                           </span>
-                          <span className="text-sm font-serif font-bold truncate group-hover:text-[#c4a661] transition-colors">
+                          <span className="text-sm font-serif font-bold truncate group-hover:text-[#ffc61a] transition-colors">
                             {matchup.nameB.name}
                           </span>
                           {matchup.nameB.parentFavorite && (
@@ -596,16 +596,16 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
                           )}
                         </>
                       ) : (
-                        <span className="text-xs text-[#55554e] italic">Vainqueur match précédent...</span>
+                        <span className="text-xs text-[#5f84c9] italic">Vainqueur match précédent...</span>
                       )}
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
                       {matchup.winnerId === matchup.nameB?.id && (
-                        <Crown className="w-4 h-4 text-[#c4a661] fill-[#c4a661]" />
+                        <Crown className="w-4 h-4 text-[#ffc61a] fill-[#ffc61a]" />
                       )}
                       {matchup.nameB && (
-                        <span className="text-xs font-mono font-bold text-[#c4a661] bg-[#161618] px-2 py-0.5 rounded border border-[#2d2d2a]">
+                        <span className="text-xs font-mono font-bold text-[#ffc61a] bg-[#142a5a] px-2 py-0.5 rounded border border-[#2b4f95]">
                           {formatOdds(oddsB)}
                         </span>
                       )}
@@ -614,7 +614,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({ onSelectMa
 
                   {/* Bottom footer button */}
                   <div className="mt-3 text-center">
-                    <span className="text-[11px] font-bold text-[#c4a661] hover:underline flex items-center justify-center gap-1 font-mono">
+                    <span className="text-[11px] font-bold text-[#ffc61a] hover:underline flex items-center justify-center gap-1 font-mono">
                       <Eye className="w-3.5 h-3.5" /> Voir détails & Paris
                     </span>
                   </div>
