@@ -31,6 +31,7 @@ export const MatchOfTheDay: React.FC = () => {
     bets,
     currentUser,
     placeBet,
+    changeBet,
     advanceToNextDay,
     comments,
     addComment,
@@ -42,10 +43,12 @@ export const MatchOfTheDay: React.FC = () => {
   const [customBetInput, setCustomBetInput] = useState<string>('100');
   const [betMessage, setBetMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [commentText, setCommentText] = useState<string>('');
+  const [isEditingBet, setIsEditingBet] = useState<boolean>(false);
 
 useEffect(() => {
   setSelectedNameId(null);
   setBetMessage(null);
+  setIsEditingBet(false);
 }, [currentMatchup?.id]);
   
   if (!currentMatchup || !currentMatchup.nameA || !currentMatchup.nameB) {
@@ -90,6 +93,29 @@ useEffect(() => {
     }
   };
 
+  const myBet = currentUser
+    ? bets.find(
+        (b) => b.matchupId === currentMatchup.id && b.userId === currentUser.id && b.status === 'active'
+      )
+    : undefined;
+  const showBetForm = !myBet || isEditingBet;
+  const availablePoints = (currentUser?.points ?? 0) + (isEditingBet && myBet ? myBet.pointsBet : 0);
+
+  const handleStartChangeBet = () => {
+    if (!myBet) return;
+    setSelectedNameId(myBet.chosenNameId);
+    setBetAmount(myBet.pointsBet);
+    setCustomBetInput(myBet.pointsBet.toString());
+    setBetMessage(null);
+    setIsEditingBet(true);
+  };
+
+  const handleCancelChangeBet = () => {
+    setIsEditingBet(false);
+    setSelectedNameId(null);
+    setBetMessage(null);
+  };
+
   const handleConfirmBet = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedNameId) {
@@ -97,8 +123,11 @@ useEffect(() => {
       return;
     }
 
-    const res = await placeBet(currentMatchup.id, selectedNameId, betAmount);
+    const res = myBet
+      ? await changeBet(currentMatchup.id, selectedNameId, betAmount)
+      : await placeBet(currentMatchup.id, selectedNameId, betAmount);
     if (res.success) {
+      setIsEditingBet(false);
       setBetMessage({ type: 'success', text: res.message });
       confetti({
         particleCount: 90,
@@ -375,8 +404,52 @@ useEffect(() => {
           </div>
         </div>
 
+        {/* Pari déjà validé */}
+        {myBet && !isEditingBet && (
+          <div className="space-y-4">
+            <div className="bg-slate-950 border border-emerald-500/30 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
+                <div>
+                  <div className="text-xs text-slate-400">Ton pari est validé :</div>
+                  <div className="text-lg font-black text-white">
+                    {myBet.chosenName} — <span className="text-amber-300 font-mono">{formatPoints(myBet.pointsBet)}</span>
+                  </div>
+                  <div className="text-xs text-slate-400 font-mono">
+                    Cote {formatOdds(myBet.oddsAtBetTime)} · Gain potentiel {formatPoints(myBet.potentialPayout)}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleStartChangeBet}
+                className="px-4 py-2.5 rounded-xl text-sm font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 transition-all"
+              >
+                Changer son pari
+              </button>
+            </div>
+            {betMessage && betMessage.text && (
+              <div
+                className={`p-4 rounded-xl text-xs font-medium ${
+                  betMessage.type === 'success'
+                    ? 'animate-pop bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'
+                    : 'bg-rose-500/10 border border-rose-500/30 text-rose-300'
+                }`}
+              >
+                {betMessage.text}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Form */}
+        {showBetForm && (
         <form onSubmit={handleConfirmBet} className="space-y-6">
+          {isEditingBet && myBet && (
+            <div className="p-3 rounded-xl text-xs bg-amber-500/10 border border-amber-500/30 text-amber-200">
+              Modification de ton pari : ton ancienne mise ({formatPoints(myBet.pointsBet)} sur {myBet.chosenName}) sera remboursée puis remplacée par la nouvelle.
+            </div>
+          )}
           {/* Target Name selector buttons */}
           <div className="grid grid-cols-2 gap-4">
             <button
@@ -411,7 +484,7 @@ useEffect(() => {
           {/* Quick Amount Presets */}
           <div>
             <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-              Montant de la mise (Vos points dispo : {formatPoints(currentUser.points)})
+              Montant de la mise (Vos points dispo : {formatPoints(availablePoints)})
             </label>
             <div className="flex flex-wrap gap-2 mb-3">
               {[50, 100, 250, 500].map((amt) => (
@@ -430,10 +503,10 @@ useEffect(() => {
               ))}
               <button
                 type="button"
-                onClick={() => handleQuickPreset(currentUser.points)}
+                onClick={() => handleQuickPreset(availablePoints)}
                 className="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30"
               >
-                TOUT MISER ({currentUser.points} PTS)
+                TOUT MISER ({availablePoints} PTS)
               </button>
             </div>
 
@@ -442,7 +515,7 @@ useEffect(() => {
               <input
                 type="number"
                 min="10"
-                max={currentUser.points}
+                max={availablePoints}
                 value={customBetInput}
                 onChange={(e) => handleCustomBetChange(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white font-mono font-bold text-base focus:border-amber-400 focus:outline-none"
@@ -491,9 +564,19 @@ useEffect(() => {
             className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-base py-4 rounded-2xl shadow-xl shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
             <Coins className="w-5 h-5 fill-slate-950" />
-            CONFIRMER LE PARI ({betAmount} PTS)
+            {isEditingBet ? 'CONFIRMER LE NOUVEAU PARI' : 'CONFIRMER LE PARI'} ({betAmount} PTS)
           </button>
+          {isEditingBet && (
+            <button
+              type="button"
+              onClick={handleCancelChangeBet}
+              className="w-full text-sm font-semibold text-slate-400 hover:text-slate-200 py-2 transition-all"
+            >
+              Annuler la modification
+            </button>
+          )}
         </form>
+        )}
       </div>
 
       {/* COMMUNITY COMMENTS & DEBATE SECTION */}

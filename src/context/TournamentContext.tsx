@@ -19,6 +19,7 @@ interface TournamentContextType {
   logout: () => void;
   login: (name: string, passwordHash: string) => { success: boolean; message?: string };
   placeBet: (matchupId: number, nameId: string, amount: number) => Promise<{ success: boolean; message: string }>;
+  changeBet: (matchupId: number, nameId: string, amount: number) => Promise<{ success: boolean; message: string }>;
   advanceToNextDay: (winnerIdOverride?: string) => Promise<void>;
   addComment: (matchupId: number, text: string, nameId?: string) => Promise<void>;
   toggleParentFavorite: (nameId: string) => Promise<void>;
@@ -315,6 +316,86 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   };
 
+  const changeBet = async (
+    matchupId: number,
+    nameId: string,
+    amount: number
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!currentUser) return { success: false, message: 'Connecte-toi pour modifier ton pari.' };
+    if (amount <= 0) {
+      return { success: false, message: 'Le montant du pari doit être supérieur à 0 point.' };
+    }
+
+    const targetMatchup = matchups.find((m) => m.id === matchupId);
+    if (!targetMatchup) return { success: false, message: 'Match introuvable.' };
+    if (targetMatchup.status !== 'live') {
+      return { success: false, message: 'Les paris sont fermés pour ce match, impossible de le modifier.' };
+    }
+
+    const oldBet = bets.find(
+      (b) => b.matchupId === matchupId && b.userId === currentUser.id && b.status === 'active'
+    );
+    if (!oldBet) return { success: false, message: 'Aucun pari en cours à modifier sur ce match.' };
+
+    const isA = targetMatchup.nameA?.id === nameId;
+    const isB = targetMatchup.nameB?.id === nameId;
+    if (!isA && !isB) return { success: false, message: 'Prénom invalide pour ce match.' };
+    const chosenNameObj = isA ? targetMatchup.nameA : targetMatchup.nameB;
+    if (!chosenNameObj) return { success: false, message: 'Prénom non disponible.' };
+
+    // L'ancienne mise est remboursée avant de débiter la nouvelle
+    const availablePoints = currentUser.points + oldBet.pointsBet;
+    if (availablePoints < amount) {
+      return { success: false, message: `Solde insuffisant ! Tu as ${availablePoints} points disponibles (ancienne mise incluse).` };
+    }
+
+    const { oddsA, oddsB } = calculateOdds(targetMatchup.votesA, targetMatchup.votesB);
+    const oddsAtBetTime = isA ? oddsA : oddsB;
+    const potentialPayout = calculatePotentialPayout(amount, oddsAtBetTime);
+
+    // 1) Modifier le pari existant
+    const { error: betError } = await supabase
+      .from('bets')
+      .update({
+        chosen_name_id: nameId,
+        chosen_name: chosenNameObj.name,
+        points_bet: amount,
+        odds_at_bet_time: oddsAtBetTime,
+        potential_payout: potentialPayout,
+      })
+      .eq('id', oldBet.id);
+
+    if (betError) return { success: false, message: `Erreur : ${betError.message}` };
+
+    // 2) Rembourser l'ancienne mise et débiter la nouvelle
+    await supabase
+      .from('users')
+      .update({ points: availablePoints - amount })
+      .eq('id', currentUser.id);
+
+    // 3) Corriger la cagnotte : retirer l'ancien pari, ajouter le nouveau
+    const wasA = oldBet.chosenNameId === targetMatchup.nameA?.id;
+    let votesA = targetMatchup.votesA - (wasA ? oldBet.pointsBet : 0);
+    let votesB = targetMatchup.votesB - (wasA ? 0 : oldBet.pointsBet);
+    let countA = targetMatchup.countA - (wasA ? 1 : 0);
+    let countB = targetMatchup.countB - (wasA ? 0 : 1);
+    if (isA) { votesA += amount; countA += 1; } else { votesB += amount; countB += 1; }
+
+    await supabase
+      .from('matchups')
+      .update({
+        votes_a: Math.max(0, votesA),
+        votes_b: Math.max(0, votesB),
+        count_a: Math.max(0, countA),
+        count_b: Math.max(0, countB),
+      })
+      .eq('id', matchupId);
+
+    await fetchAll();
+
+    return { success: true, message: `Pari modifié : ${chosenNameObj.name} (${amount} PTS)` };
+  };
+
   const advanceToNextDay = async (winnerIdOverride?: string) => {
     const activeMatchup = matchups.find((m) => m.status === 'live');
 
@@ -462,6 +543,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         logout,
         login,
         placeBet,
+        changeBet,
         advanceToNextDay,
         addComment,
         toggleParentFavorite,
