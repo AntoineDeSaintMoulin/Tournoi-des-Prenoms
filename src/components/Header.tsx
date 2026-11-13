@@ -40,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
             EN DIRECT - JOUR {currentDay} / {totalDays}
           </span>
           <span className="truncate hidden sm:inline">
-            Match en cours : {currentMatchup?.nameA?.name || '???'} VS {currentMatchup?.nameB?.name || '???'} — Cotes en temps réel !
+            Match en cours : {currentMatchup?.nameA?.name || '???'} VS {currentMatchup?.nameB?.name || '???'} — Cote fixe : 1,50 !
           </span>
         </div>
         <div className="flex items-center gap-2 text-[11px] font-semibold shrink-0">

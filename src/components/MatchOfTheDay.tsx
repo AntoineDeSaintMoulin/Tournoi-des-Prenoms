@@ -213,7 +213,7 @@ useEffect(() => {
             {/* Odds & Pari box */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
               <div>
-                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Cote actuelle</div>
+                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Cote fixe</div>
                 <div className="text-2xl font-black text-emerald-400 font-mono">
                   {formatOdds(oddsA)}
                 </div>
@@ -314,7 +314,7 @@ useEffect(() => {
             {/* Odds & Pari box */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
               <div>
-                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Cote actuelle</div>
+                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Cote fixe</div>
                 <div className="text-2xl font-black text-emerald-400 font-mono">
                   {formatOdds(oddsB)}
                 </div>

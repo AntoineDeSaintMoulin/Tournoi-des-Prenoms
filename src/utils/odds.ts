@@ -1,27 +1,10 @@
 /**
- * Calculates parimutuel sports betting odds based on points bet.
- * Formula includes a base virtual liquidity pool (100 pts) so odds start at 2.00 vs 2.00
- * and don't explode to infinity when 0 bets are placed on one side.
+ * Fixed odds: every bet always pays 1.50, whatever the votes on each side.
  */
-export function calculateOdds(votesA: number, votesB: number): { oddsA: number; oddsB: number } {
-  const baseLiquidity = 150;
-  const totalPool = votesA + votesB + baseLiquidity * 2;
+export const FIXED_ODDS = 1.5;
 
-  const poolA = votesA + baseLiquidity;
-  const poolB = votesB + baseLiquidity;
-
-  // Odds = Total Pool / Specific Pool
-  // We apply a small house margin (3%) typical of sportsbooks
-  const margin = 0.97;
-
-  let oddsA = (totalPool / poolA) * margin;
-  let oddsB = (totalPool / poolB) * margin;
-
-  // Clamp minimum odds to 1.05 and round to 2 decimal places
-  oddsA = Math.max(1.05, Math.round(oddsA * 100) / 100);
-  oddsB = Math.max(1.05, Math.round(oddsB * 100) / 100);
-
-  return { oddsA, oddsB };
+export function calculateOdds(_votesA: number, _votesB: number): { oddsA: number; oddsB: number } {
+  return { oddsA: FIXED_ODDS, oddsB: FIXED_ODDS };
 }
 
 /**
